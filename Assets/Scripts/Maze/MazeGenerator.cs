@@ -183,7 +183,7 @@ public static class MazeGenerator
     /// <param name="width">Width of the maze in nodes</param>
     /// <param name="height">Height of the maze in nodes</param>
     /// <returns>A 2D array of WallStates, which can be used to build the maze</returns>
-    public static WallState[,] Generate(uint width, uint height)
+    public static WallState[,] Generate(uint width, uint height, MazeRenderer.Algorithms algorithm)
     {
         WallState[,] maze = new WallState[width, height];
         WallState initial = WallState.RIGHT | WallState.LEFT | WallState.UP | WallState.DOWN;   // 1111
@@ -195,8 +195,19 @@ public static class MazeGenerator
             }
         }
 
-        //TODO here you will switch between the different algorithms
-        return ApplyRecursiveBacktracker(maze, width, height);
+        switch (algorithm)
+        {
+            case MazeRenderer.Algorithms.RecursiveBacktracking:
+                return ApplyRecursiveBacktracker(maze, width, height);
+            case MazeRenderer.Algorithms.testA:
+                //TODO change here
+                return ApplyRecursiveBacktracker(maze, width, height);
+            case MazeRenderer.Algorithms.testB:
+                //TODO change here
+                return ApplyRecursiveBacktracker(maze, width, height);
+            default:
+                return ApplyRecursiveBacktracker(maze, width, height); //A fallback just in case, even though this should never occur
+        }
     }
     #endregion
 }
