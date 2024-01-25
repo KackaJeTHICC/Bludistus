@@ -34,7 +34,7 @@ public struct Neighbour
 }
 
 /// <summary>
-/// The class responsible for generating the maze layout
+/// The class responsible for generating maze layout
 /// </summary>
 public static class MazeGenerator
 {

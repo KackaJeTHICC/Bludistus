@@ -1,6 +1,9 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// The class responsible for generating maze walls
+/// </summary>
 public class MazeRenderer : MonoBehaviour
 {
     #region Variables
@@ -110,24 +113,8 @@ public class MazeRenderer : MonoBehaviour
     /// <param name="maze">Maze layout</param>
     private void DrawMaze(WallState[,] maze)
     {              
-        Vector3 startingPosition = new Vector3(-m_width / 2 - 1, 0, -m_height / 2);//TODO + new Vector3(0, 0, -m_size / 2)
-        Vector3 finishingPosition = new Vector3(m_width / 2 - 1, 0, m_height / 2 - 1) + new Vector3(m_size, 0, 0); //TODO
-        /*
-         something along the lines one "if width is even or odd" or "if length is even or odd" 
-         */
-
         maze[0, 0] &= ~WallState.LEFT;                        //creates entrance
         maze[m_width - 1,  m_height- 1] &= ~WallState.RIGHT;  //creates exit
-
-        Instantiate(Resources.Load("Prefabs/Finish Line"), finishingPosition, new Quaternion(0, 0, 0, 0));//TODO move down
-
-        if (m_player == null)
-        {
-            Debug.LogError("Player isn't assigned!");
-            m_player = GameObject.Find("PlayerCapsule");    //will most likely fail, as player game object should be disabled by default
-        }
-        m_player.transform.localPosition = startingPosition; //moves player to the start of the maze
-        m_player.gameObject.SetActive(true);
 
         for (uint i = 0; i < m_width; ++i)  //Builds all walls
         {
@@ -150,7 +137,7 @@ public class MazeRenderer : MonoBehaviour
                     leftWall.eulerAngles = new Vector3(0, 90, 0);
                 }
 
-                if (i == m_width - 1)   //Checking if we are at the last column  
+                if (i == m_width - 1)   //Checking if we are at the most right column  
                 {
                     if (cell.HasFlag(WallState.RIGHT))
                     {
@@ -159,9 +146,13 @@ public class MazeRenderer : MonoBehaviour
                         rightWall.localScale = new Vector3(m_size, rightWall.localScale.y, rightWall.localScale.z);
                         rightWall.eulerAngles = new Vector3(0, 90, 0);
                     }
+                    if (j == m_height - 1)  //places the finish line in top right corner
+                    {
+                        Instantiate(Resources.Load("Prefabs/Finish Line"), position + new Vector3(m_size, 0, 0), new Quaternion(0, 0, 0, 0));//TODO move down
+                    }
                 }
 
-                if (j == 0)   //Checking if we are at the first row
+                if (j == 0)   //Checking if we are at the bottom row
                 {
                     if (cell.HasFlag(WallState.DOWN))
                     {
@@ -169,6 +160,17 @@ public class MazeRenderer : MonoBehaviour
                         bottomWall.position = position + new Vector3(0, 0, -m_size / 2);
                         bottomWall.localScale = new Vector3(m_size, bottomWall.localScale.y, bottomWall.localScale.z);
                     }
+                }
+
+                if (i == 0 && j == 0)   //Checking if we are at the bottom left corner
+                {
+                    if (m_player == null)   //this should never happen:)
+                    {
+                        Debug.LogError("Player isn't assigned!");
+                        m_player = GameObject.Find("PlayerCapsule");    //will most likely fail, as player game object should be disabled by default
+                    }
+                    m_player.transform.localPosition = position + new Vector3(-m_size, 0, 0); //moves player to the start of the maze
+                    m_player.gameObject.SetActive(true);
                 }
             }
         }
