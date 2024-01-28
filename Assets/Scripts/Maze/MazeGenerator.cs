@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+#region Enums/Structs
 /// <summary>
 /// All possible wall states in bits
 /// </summary>
@@ -33,12 +34,24 @@ public struct Neighbour
     public WallState SharedWall;
 }
 
+public enum NextCandidateStrategy
+{
+    Newest,
+    Random, //TODO delete later if
+    NewestRandom,
+};
+#endregion
+
 /// <summary>
 /// The class responsible for generating maze layout
 /// </summary>
 public static class MazeGenerator
 {
-    #region RecursiveBacktrackerAlgorithm
+    #region Growing Tree
+    //TODO:)
+    #endregion
+
+    #region Recursive Backtracker Algorithm
     /// <summary>
     /// Returns a neighbors wall from the other side
     /// </summary>
