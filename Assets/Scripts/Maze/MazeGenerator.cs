@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
+using Random = System.Random;
 
 #region Enums/Structs
 /// <summary>
@@ -8,12 +10,11 @@ using System.Collections.Generic;
 [Flags]
 public enum WallState
 {
-      LEFT = 1,     //0000 0001
-      RIGHT = 2,    //0000 0010
-      UP = 4,       //0000 0100
-      DOWN = 8,     //0000 1000
-
-      VISITED = 128 //1000 0000
+      left = 1,     //0000 0001
+      right = 2,    //0000 0010
+      up = 4,       //0000 0100
+      down = 8,     //0000 1000
+      visited = 128 //1000 0000
 }
 
 /// <summary>
@@ -26,20 +27,13 @@ public struct Position
 }
 
 /// <summary>
-/// TODO summary
+/// Neighbors wall
 /// </summary>
 public struct Neighbour
 {
     public Position Position;
     public WallState SharedWall;
 }
-
-public enum NextCandidateStrategy
-{
-    Newest,
-    Random, //TODO delete later if
-    NewestRandom,
-};
 #endregion
 
 /// <summary>
@@ -61,11 +55,11 @@ public static class MazeGenerator
     {
         switch (wall)
         {
-            case WallState.RIGHT: return WallState.LEFT;
-            case WallState.LEFT: return WallState.RIGHT;
-            case WallState.UP: return WallState.DOWN;
-            case WallState.DOWN: return WallState.UP;
-            default: return WallState.LEFT; //A fallback just in case, even though this should never occur
+            case WallState.right: return WallState.left;
+            case WallState.left: return WallState.right;
+            case WallState.up: return WallState.down;
+            case WallState.down: return WallState.up;
+            default: return WallState.left; //A fallback just in case, even though this should never occur
         }
     }
 
@@ -76,13 +70,13 @@ public static class MazeGenerator
     /// <param name="width">Width of given maze in nodes/param>
     /// <param name="height">Height of given maze in nodes</param>
     /// <returns>Returns a maze layout, which should be rendered</returns>
-    private static WallState[,] ApplyRecursiveBacktracker(WallState[,] maze, uint width, uint height)
+    private static WallState[,] ApplyRecursiveBacktracker(WallState[,] maze, uint width, uint height, int seed)
     {
-        Random rng = new Random();
+        Random rng = new Random(seed);
         Stack<Position> positionStack = new Stack<Position>();
-        Position position = new Position { X = (uint)rng.Next(0, (int)width), Y = (uint)rng.Next(0, (int)height) }; //TODO check if uint here is ok
+        Position position = new Position { X = (uint)rng.Next(0, (int)width), Y = (uint)rng.Next(0, (int)height) };
 
-        maze[position.X, position.Y] |= WallState.VISITED;  //1000 <whatever WallState value> 
+        maze[position.X, position.Y] |= WallState.visited;  //1000 <whatever WallState value> 
         positionStack.Push(position);
 
         while (positionStack.Count > 0) //Checks all unvisited neighbors
@@ -100,7 +94,7 @@ public static class MazeGenerator
                 var randomPosition = randomNeighbour.Position;
                 maze[current.X, current.Y] &= ~randomNeighbour.SharedWall;
                 maze[randomPosition.X, randomPosition.Y] &= ~GetOppositeWall(randomNeighbour.SharedWall);
-                maze[randomPosition.X, randomPosition.Y] |= WallState.VISITED;
+                maze[randomPosition.X, randomPosition.Y] |= WallState.visited;
 
                 positionStack.Push(randomPosition);
             }
@@ -110,12 +104,12 @@ public static class MazeGenerator
     }
 
     /// <summary>
-    /// Returns a list of unvisited neighbors //TODO fill params
+    /// Returns a list of unvisited neighbors
     /// </summary>
-    /// <param name="p"></param>
-    /// <param name="maze"></param>
-    /// <param name="width"></param>
-    /// <param name="height"></param>
+    /// <param name="p">Current position</param>
+    /// <param name="maze">A maze layout</param>
+    /// <param name="width">Width of maze in nodes</param>
+    /// <param name="height">Height of maze in nodes</param>
     /// <returns>A list of unvisited neighbors</returns>
     private static List<Neighbour> GetUnvisitedNeighbours(Position p, WallState[,] maze, uint width, uint height)
     {
@@ -123,7 +117,7 @@ public static class MazeGenerator
 
         if (p.X > 0) // left
         {
-            if (!maze[p.X - 1, p.Y].HasFlag(WallState.VISITED))
+            if (!maze[p.X - 1, p.Y].HasFlag(WallState.visited))
             {
                 list.Add(new Neighbour
                 {
@@ -132,14 +126,14 @@ public static class MazeGenerator
                         X = p.X - 1,
                         Y = p.Y
                     },
-                    SharedWall = WallState.LEFT
+                    SharedWall = WallState.left
                 });
             }
         }
 
-        if (p.Y > 0) // DOWN
+        if (p.Y > 0) // down
         {
-            if (!maze[p.X, p.Y - 1].HasFlag(WallState.VISITED))
+            if (!maze[p.X, p.Y - 1].HasFlag(WallState.visited))
             {
                 list.Add(new Neighbour
                 {
@@ -148,14 +142,14 @@ public static class MazeGenerator
                         X = p.X,
                         Y = p.Y - 1
                     },
-                    SharedWall = WallState.DOWN
+                    SharedWall = WallState.down
                 });
             }
         }
 
-        if (p.Y < height - 1) // UP
+        if (p.Y < height - 1) // up
         {
-            if (!maze[p.X, p.Y + 1].HasFlag(WallState.VISITED))
+            if (!maze[p.X, p.Y + 1].HasFlag(WallState.visited))
             {
                 list.Add(new Neighbour
                 {
@@ -164,14 +158,14 @@ public static class MazeGenerator
                         X = p.X,
                         Y = p.Y + 1
                     },
-                    SharedWall = WallState.UP
+                    SharedWall = WallState.up
                 });
             }
         }
 
-        if (p.X < width - 1) // RIGHT
+        if (p.X < width - 1) // right
         {
-            if (!maze[p.X + 1, p.Y].HasFlag(WallState.VISITED))
+            if (!maze[p.X + 1, p.Y].HasFlag(WallState.visited))
             {
                 list.Add(new Neighbour
                 {
@@ -180,7 +174,7 @@ public static class MazeGenerator
                         X = p.X + 1,
                         Y = p.Y
                     },
-                    SharedWall = WallState.RIGHT
+                    SharedWall = WallState.right
                 });
             }
         }
@@ -196,10 +190,10 @@ public static class MazeGenerator
     /// <param name="width">Width of the maze in nodes</param>
     /// <param name="height">Height of the maze in nodes</param>
     /// <returns>A 2D array of WallStates, which can be used to build the maze</returns>
-    public static WallState[,] Generate(uint width, uint height, MazeRenderer.Algorithms algorithm)
+    public static WallState[,] Generate(uint width, uint height, Algorithms algorithm, int seed)
     {
         WallState[,] maze = new WallState[width, height];
-        WallState initial = WallState.RIGHT | WallState.LEFT | WallState.UP | WallState.DOWN;   // 1111
+        WallState initial = WallState.right | WallState.left | WallState.up | WallState.down;   // 1111
         for (uint i = 0; i < width; ++i)
         {
             for (uint j = 0; j < height; ++j)
@@ -210,16 +204,15 @@ public static class MazeGenerator
 
         switch (algorithm)
         {
-            case MazeRenderer.Algorithms.RecursiveBacktracking:
-                return ApplyRecursiveBacktracker(maze, width, height);
-            case MazeRenderer.Algorithms.testA:
-                //TODO change here
-                return ApplyRecursiveBacktracker(maze, width, height);
-            case MazeRenderer.Algorithms.testB:
-                //TODO change here
-                return ApplyRecursiveBacktracker(maze, width, height);
+            case Algorithms.RecursiveBacktracking:
+                return ApplyRecursiveBacktracker(maze, width, height, seed);
+            case Algorithms.testA:
+                return ApplyRecursiveBacktracker(maze, width, height, seed);
+            case Algorithms.testB:
+                return ApplyRecursiveBacktracker(maze, width, height, seed);
             default:
-                return ApplyRecursiveBacktracker(maze, width, height); //A fallback just in case, even though this should never occur
+                Debug.LogError("Invalid algorithm: " + algorithm + ", falling back to Recursive backtracker");
+                return ApplyRecursiveBacktracker(maze, width, height, seed); //A fallback just in case, even though this should never occur
         }
     }
     #endregion
