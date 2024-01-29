@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace StarterAssets
 {
+    [System.Obsolete]
     public partial class StarterAssetsDeployMenu : ScriptableObject
     {
         // prefab paths
