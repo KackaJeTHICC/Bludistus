@@ -34,6 +34,8 @@ AudioMixerController:
   m_ExposedParameters:
   - guid: ba6991b1bbe1c2d408c183876082c9e6
     name: MasterVolume
+  - guid: 33c660dee34cd6047972927fd9f049d9
+    name: MasterPitch
   m_AudioMixerGroupViews:
   - guids:
     - 623f46582161462449c781ada20ab49e
@@ -106,6 +108,7 @@ AudioMixerSnapshotController:
     68c7190de3736d14ea74d68ac3855584: 1051
     68155e3de81c5ae4c980353b2c7c0bce: 100
     91ab091e54e8c9c4d8f3cab5bd796cba: 0.356
+    33c660dee34cd6047972927fd9f049d9: 1
     51aeae1f1ea3f524fabb22d699eee1ef: 0.3
   m_TransitionOverrides: {}
 --- !u!244 &277162333337043727

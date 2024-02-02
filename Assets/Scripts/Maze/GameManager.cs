@@ -8,11 +8,32 @@ using UnityStandardAssets.CrossPlatformInput;
 /// </summary>
 public class GameManager : MonoBehaviour
 {
+    #region Instance
+    public static GameManager instance;
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+    }
+    #endregion
+
     #region Variables
     /// <summary>
-    /// Amount of notes needed to open the door
+    /// Game difficulty settings
     /// </summary>
-    private byte m_notesNeeded = 1;
+    private DifficultySettigns m_difficulty;
+
+    /// <summary>
+    /// Is the monster spawned
+    /// </summary>
+    private bool m_isMonster = false;  
+    
+    /// <summary>
+    /// Amount of notes that were already picked up
+    /// </summary>
+    private byte m_notesPickedUp = 0;
 
     /// <summary>
     /// Is the game paused?
@@ -30,16 +51,21 @@ public class GameManager : MonoBehaviour
     /// </summary>
     [SerializeField]
     private GameObject m_pauseMenu = null;
+
+    /// <summary>
+    /// Finish line object
+    /// </summary>  
+    private GameObject m_finishLine = null;
     #endregion
 
     #region Getters/Setters
     /// <summary>
-    /// Sets the amount of nodes needed to unlock the finish line
+    /// DifficultySettigns setter                                                
     /// </summary>
-    /// <param name="amount">Amount of nodes needed to unlock the finish line</param>
-    public void NotesNeeded(string amount)
+    /// <param name="difficulty">Game difficulty enum</param>
+    public void Difficulty(DifficultySettigns difficulty)
     {
-        m_notesNeeded = byte.Parse(amount);
+         m_difficulty = difficulty;
     }
     #endregion
 
@@ -59,11 +85,33 @@ public class GameManager : MonoBehaviour
     }
 
     private void Update()
-    {                                                                       
-        //TODO better pause menu??? idk, this might be good enough
+    {                                                                
         if (CrossPlatformInputManager.GetButtonDown("Cancel"))  //Pauses the game if it's unpaused and vice versa
         {
             PauseGame();
+        }
+    }
+
+    /// <summary>
+    /// Logic after picking up a note
+    /// </summary>
+    public void NotePickedUp()
+    {
+        byte notesNeeded = LevelStart.instance.NotesNeeded();
+
+        m_notesPickedUp++;
+
+        if(m_notesPickedUp >= Mathf.FloorToInt(notesNeeded / 2) && m_difficulty.HasFlag(DifficultySettigns.spawnMonster) && !m_isMonster)    //spawns the monster mid game
+        {
+            m_isMonster = true;
+            Instantiate(Resources.Load("Prefabs/Monster"), new Vector3(0, 1, 0), new Quaternion(0, 0, 0, 0));   //TODO location
+        }
+
+        if (m_notesPickedUp >= notesNeeded)   //opens the gate if all notes are picked up
+        {
+            m_finishLine = GameObject.Find("Finish Line");
+            m_finishLine.GetComponentInChildren<Animator>().SetBool("All notes collected", true);
+            m_finishLine.GetComponent<AudioSource>().Play();
         }
     }
 
@@ -74,7 +122,7 @@ public class GameManager : MonoBehaviour
     {
         if (m_isPause)
         {                            
-            m_isPause = false;                       
+            m_isPause = false;
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
             m_player.SetActive(true);
@@ -82,11 +130,11 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            m_isPause = true;
-            m_player.SetActive(false);
-            m_pauseMenu.SetActive(true);               
+            m_isPause = true;              
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
+            m_pauseMenu.SetActive(true);      
+            m_player.SetActive(false);
         }
     }
     #endregion

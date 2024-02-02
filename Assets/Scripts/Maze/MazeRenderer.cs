@@ -1,4 +1,5 @@
 using System;
+using Unity.AI.Navigation;
 using UnityEngine;
 using Random = System.Random;
 
@@ -57,6 +58,11 @@ public class MazeRenderer : MonoBehaviour
     private float m_size = 1f;
 
     /// <summary>
+    /// Vertical position of a singe maze wall
+    /// </summary>
+    private float m_vertical = -0.3f;
+
+    /// <summary>
     /// A single maze wall prefab
     /// </summary>
     [SerializeField]
@@ -93,7 +99,7 @@ public class MazeRenderer : MonoBehaviour
             Debug.LogError("Parsing height: " + width + " failed, using fallback value of " + m_width);
         }
     }
-    
+
     /// <summary>
     /// Sets the width of a maze
     /// </summary>
@@ -127,7 +133,7 @@ public class MazeRenderer : MonoBehaviour
     {
         m_seed = int.Parse(seed);
     }
-      
+
     /// <summary>
     /// Disables custom seed
     /// </summary>
@@ -135,7 +141,7 @@ public class MazeRenderer : MonoBehaviour
     {
         m_difficultySettings &= ~DifficultySettigns.customSeed;
     }
-   
+
     /// <summary>
     /// Toggles custom seed
     /// </summary>
@@ -167,7 +173,7 @@ public class MazeRenderer : MonoBehaviour
         }
 
     }
-    
+
     /// <summary>
     /// Toggles enemy spawning
     /// </summary>
@@ -223,20 +229,21 @@ public class MazeRenderer : MonoBehaviour
     /// </summary>
     public void StartMazeGeneration(int algorithm)
     {
-        if (!m_difficultySettings.HasFlag(DifficultySettigns.customSeed)) 
+        if (!m_difficultySettings.HasFlag(DifficultySettigns.customSeed))
         {
             m_seed = new Random().Next();
         }
         WallState[,] maze = MazeGenerator.Generate(m_width, m_height, (Algorithms)algorithm, m_seed);  //generation of a layout
-        DrawMaze(maze);                                                                                //generation of walls 
+        BuildMaze(maze);                                                                                //generation of walls 
     }
 
     /// <summary>
     /// Builds the walls of the maze, based on the layout
     /// </summary>
     /// <param name="maze">Maze layout</param>
-    private void DrawMaze(WallState[,] maze)
+    private void BuildMaze(WallState[,] maze)
     {
+        GameObject finishLine = null;
         maze[0, 0] &= ~WallState.left;                        //creates entrance
         maze[m_width - 1, m_height - 1] &= ~WallState.right;  //creates exit
 
@@ -250,48 +257,57 @@ public class MazeRenderer : MonoBehaviour
                 if (cell.HasFlag(WallState.up))
                 {
                     Transform topWall = Instantiate(m_wallPrefab, transform);
-                    topWall.position = position + new Vector3(0, 0, m_size / 2);
+                    topWall.position = position + new Vector3(0, m_vertical, m_size / 2);
                     topWall.localScale = new Vector3(m_size, topWall.localScale.y, topWall.localScale.z);
                 }
                 if (cell.HasFlag(WallState.left))
                 {
                     Transform leftWall = Instantiate(m_wallPrefab, transform);
-                    leftWall.position = position + new Vector3(-m_size / 2, 0, 0);
+                    leftWall.position = position + new Vector3(-m_size / 2, m_vertical, 0);
                     leftWall.localScale = new Vector3(m_size, leftWall.localScale.y, leftWall.localScale.z);
                     leftWall.eulerAngles = new Vector3(0, 90, 0);
                 }
-
-                if (i == m_width - 1)   //Checking if we are at the most right column  
+                        
+                if (i == m_width - 1)   //Places right column walls
                 {
                     if (cell.HasFlag(WallState.right))
                     {
                         Transform rightWall = Instantiate(m_wallPrefab, transform);
-                        rightWall.position = position + new Vector3(m_size / 2, 0, 0);
+                        rightWall.position = position + new Vector3(m_size / 2, m_vertical, 0);
                         rightWall.localScale = new Vector3(m_size, rightWall.localScale.y, rightWall.localScale.z);
                         rightWall.eulerAngles = new Vector3(0, 90, 0);
                     }
+
                     if (j == m_height - 1)  //places the finish line in top right corner
                     {
-                        Instantiate(Resources.Load("Prefabs/Finish Line"), position + new Vector3(m_size, 0, 0), new Quaternion(0, 0, 0, 0));
+                        finishLine = Instantiate(Resources.Load("Prefabs/Finish Line"), position + new Vector3(0.5f, 0, 0), Quaternion.Euler(0f, -180f, 0f)) as GameObject;
+                        finishLine.name = "Finish Line";
                     }
                 }
 
-                if (j == 0)   //Checking if we are at the bottom row
+                if (j == 0)   //Places bottom row walls
                 {
                     if (cell.HasFlag(WallState.down))
                     {
                         Transform bottomWall = Instantiate(m_wallPrefab, transform);
-                        bottomWall.position = position + new Vector3(0, 0, -m_size / 2);
+                        bottomWall.position = position + new Vector3(0, m_vertical, -m_size / 2);
                         bottomWall.localScale = new Vector3(m_size, bottomWall.localScale.y, bottomWall.localScale.z);
                     }
                 }
 
                 if (i == 0 && j == 0)   //Checking if we are at the bottom left corner
                 {
-                    GetComponent<LevelStart>().StartLevel(position + new Vector3(-m_size, 0.17f, 0), m_width, m_height, m_difficultySettings);
+                    GetComponent<LevelStart>().StartLevel(position + new Vector3(m_size, 0.17f, 0), m_width, m_height, m_difficultySettings);
                 }
             }
         }
+
+        if (LevelStart.instance.NotesNeeded() == 0)    //opens the gate if there are no notes to be picked up
+        {
+            finishLine.GetComponentInChildren<Animator>().SetBool("All notes collected", true);
+        }
+
+        GameObject.Find("Floor").GetComponent<NavMeshSurface>().BuildNavMesh();
     }
     #endregion
 }

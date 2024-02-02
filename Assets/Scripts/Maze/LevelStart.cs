@@ -7,6 +7,17 @@ using UnityEngine;
 /// </summary>
 public class LevelStart : MonoBehaviour
 {
+    #region Instance
+    public static LevelStart instance;
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+    }
+    #endregion
+
     #region Variables
     /// <summary>
     /// Cutscene camera object
@@ -15,17 +26,47 @@ public class LevelStart : MonoBehaviour
     private Camera m_cutsceneCamera = null;
 
     /// <summary>
+    /// Renderer camera object
+    /// </summary> 
+    [SerializeField]
+    private GameObject m_rendererCamera = null;
+
+    /// <summary>
     /// Player game object
     /// </summary>
     [SerializeField]
     private GameObject m_player = null;
+
+    /// <summary>
+    /// Amount of notes needed to open the door
+    /// </summary>
+    private byte m_notesNeeded = 0;
     #endregion
 
+    #region Getters/Setters
+    /// <summary>
+    /// Sets the amount of nodes needed to unlock the finish line
+    /// </summary>
+    /// <param name="amount">Amount of nodes needed to unlock the finish line</param>
+    public void NotesNeeded(string amount)
+    {
+        m_notesNeeded = byte.Parse(amount);
+    }
+
+    /// <summary>
+    /// Sets the amount of nodes needed to unlock the finish line
+    /// </summary>
+    /// <returns></returns>
+    public byte NotesNeeded()
+    {
+        return m_notesNeeded;
+    }
+    #endregion
 
     #region Methods
     private void Start()
     {   
-        //This cases should never happen and the fallbacks will most likely fail, as player game object should be disabled by default
+        //This cases should never happen and the fallbacks will most likely fail, as some of the game objects should be disabled by default
         if (m_player == null)   
         {
             Debug.LogError("Player isn't assigned!");
@@ -35,6 +76,11 @@ public class LevelStart : MonoBehaviour
         {
             Debug.LogError("Cutscene camera isn't assigned!");
             m_cutsceneCamera = GameObject.Find("CutsceneCamera").GetComponent<Camera>();
+        }
+        if (m_cutsceneCamera == null)
+        {
+            Debug.LogError("Cutscene camera isn't assigned!");
+            m_rendererCamera = GameObject.Find("Rendered Image Camera");
         }
     }
 
@@ -55,6 +101,7 @@ public class LevelStart : MonoBehaviour
         {
             PlayerSpawn(playerStartLocation);
         }
+        GameManager.instance.Difficulty(difficulty);
     }
 
     /// <summary>
@@ -102,7 +149,14 @@ public class LevelStart : MonoBehaviour
     {
         m_player.transform.localPosition = playerStartLocation;
         m_player.gameObject.SetActive(true);
+        m_rendererCamera.gameObject.SetActive(true);
         m_cutsceneCamera.gameObject.SetActive(false);
+    }
+    
+    private Vector3 RandomSpot()
+    {
+        print("TODO");
+        return Vector3.zero;
     }
     #endregion
 }
