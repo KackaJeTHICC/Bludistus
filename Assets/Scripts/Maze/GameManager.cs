@@ -104,7 +104,7 @@ public class GameManager : MonoBehaviour
         if(m_notesPickedUp >= Mathf.FloorToInt(notesNeeded / 2) && m_difficulty.HasFlag(DifficultySettigns.spawnMonster) && !m_isMonster)    //spawns the monster mid game
         {
             m_isMonster = true;
-            Instantiate(Resources.Load("Prefabs/Monster"), new Vector3(0, 1, 0), new Quaternion(0, 0, 0, 0));   //TODO location
+            Instantiate(Resources.Load("Prefabs/Monster"), LevelStart.instance.RandomSpot(), Quaternion.Euler(0f, 0f, 0f));
         }
 
         if (m_notesPickedUp >= notesNeeded)   //opens the gate if all notes are picked up

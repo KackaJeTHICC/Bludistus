@@ -241,7 +241,7 @@ public class MazeRenderer : MonoBehaviour
     /// Builds the walls of the maze, based on the layout
     /// </summary>
     /// <param name="maze">Maze layout</param>
-    private void BuildMaze(WallState[,] maze)
+    private async void BuildMaze(WallState[,] maze)
     {
         GameObject finishLine = null;
         maze[0, 0] &= ~WallState.left;                        //creates entrance
@@ -297,7 +297,7 @@ public class MazeRenderer : MonoBehaviour
 
                 if (i == 0 && j == 0)   //Checking if we are at the bottom left corner
                 {
-                    GetComponent<LevelStart>().StartLevel(position + new Vector3(m_size, 0.17f, 0), m_width, m_height, m_difficultySettings);
+                    GetComponent<LevelStart>().StartLevel(position + new Vector3(-m_size, 0.17f, 0), m_width, m_height, m_size, m_difficultySettings, m_seed);
                 }
             }
         }

@@ -1,20 +1,17 @@
 using UnityEngine;
 
-public class Note : MonoBehaviour
+public class Note : MonoBehaviour, IPickable
 {
-    #region Variables
-
-    #endregion
-
-
     #region Methods
-    private void OnTriggerEnter(Collider other)
+    public void PickUp()
     {
-        if (other.CompareTag("Player"))
-        {
-            GameManager.instance.NotePickedUp();       
-            print("note no." + LevelStart.instance.NotesNeeded());
-        }
+        GameManager.instance.NotePickedUp();
+
+        print("note no." + LevelStart.instance.NotesNeeded() + " picked up");
+        
+        //TODO show the note
+        //then delete it
+        gameObject.SetActive(false);
     }
     #endregion
 }

@@ -23,14 +23,35 @@ public class Enemy : MonoBehaviour
     /// </summary>
     private Transform m_player = null;
 
-    //TODO CLEAN THIS      
+    /// <summary>
+    /// Sound max distance
+    /// </summary>
     public float maxDistance = 10f;
+
+    /// <summary>
+    /// Audio clip minimum speed
+    /// </summary>
     public float minSpeed = 0.5f;
+
+    /// <summary>     
+    /// Audio clip maximum speed
+    /// </summary>
     public float maxSpeed = 2.0f;
-    float distance = 0;
-    float speed = 0;
-    float normalizedDistance = 0;
-    //TODO CLEAN THIS
+
+    /// <summary>
+    /// Distance from player
+    /// </summary>
+    private float distance = 0;
+
+    /// <summary>
+    /// Audio clip speed
+    /// </summary>
+    private float speed = 0;
+
+    /// <summary>    
+    /// Normalized distance from player
+    /// </summary>
+    private float normalizedDistance = 0;
     #endregion
 
     #region Methods
@@ -51,13 +72,31 @@ public class Enemy : MonoBehaviour
     }
 
     private void Update()
-    {   //TODO CLEAN THIS
+    {   
+        //Audio stuff
         distance = Mathf.Clamp(Vector3.Distance(transform.position, m_player.position) - 10f, 0.1f, 50f);
         normalizedDistance = Mathf.Clamp01(distance / maxDistance);
         speed = Mathf.Lerp(maxSpeed, minSpeed, normalizedDistance);
         m_audioSource.pitch = speed;
 
+        //AI stuff
         m_navMeshAgent.destination = m_player.position;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            GameOver();
+        }
+    }
+
+    /// <summary>
+    /// Ends the game
+    /// </summary>
+    private void GameOver()
+    {
+        print("game over:c");
     }
 #endregion
 }

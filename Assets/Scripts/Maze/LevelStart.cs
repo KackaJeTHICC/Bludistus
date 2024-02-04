@@ -1,6 +1,9 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using Random = System.Random;
 
 /// <summary>
 /// Handles everything in between maze generation and game start
@@ -41,6 +44,31 @@ public class LevelStart : MonoBehaviour
     /// Amount of notes needed to open the door
     /// </summary>
     private byte m_notesNeeded = 0;
+    
+    /// <summary>
+    /// Width of the maze
+    /// </summary>
+    private uint m_mazeWidth = 5;
+
+    /// <summary>
+    /// Height of the maze
+    /// </summary>
+    private uint m_mazeHeight = 5;
+
+    /// <summary>
+    /// Scale of a maze
+    /// </summary>
+    private float m_size = 1f;
+
+    /// <summary>
+    /// List of notes textures
+    /// </summary>
+    public List<Material> m_noteMaterials;
+
+    /// <summary>
+    /// Random number generator
+    /// </summary>
+    private Random m_rng;
     #endregion
 
     #region Getters/Setters
@@ -65,7 +93,15 @@ public class LevelStart : MonoBehaviour
 
     #region Methods
     private void Start()
-    {   
+    {        
+        foreach (Material m in Resources.LoadAll("Materials/", typeof(Material)))
+        {
+            if (m.name.Contains("note") && m.name != "note0")
+            {
+                m_noteMaterials.Add(m);
+            }
+        }
+
         //This cases should never happen and the fallbacks will most likely fail, as some of the game objects should be disabled by default
         if (m_player == null)   
         {
@@ -88,14 +124,29 @@ public class LevelStart : MonoBehaviour
     /// Sets up everything needed to start playing the game after maze has been generated
     /// </summary>                                   
     /// <param name="playerStartLocation">Starting location of a player</param>    
-    /// <param name="widht">Width of a maze in nodes</param>    
+    /// <param name="width">Width of a maze in nodes</param>    
     /// <param name="height">Height of a maze in nodes</param>
     /// <param name="difficulty">Custom difficulty settings flag</param>
-    public void StartLevel(Vector3 playerStartLocation, uint widht, uint height, DifficultySettigns difficulty)
+    /// <param name="seed">Seed for the random number generator</param>
+    public void StartLevel(Vector3 playerStartLocation, uint width, uint height, float size, DifficultySettigns difficulty, int seed)
     {
+        m_rng = new Random(seed);
+        m_size = size;
+        m_mazeWidth = width;
+        m_mazeHeight = height;
+
+        for (int i = 0; i < m_notesNeeded; i++)
+        {
+            NoteSpawn();
+        }
+        if (difficulty.HasFlag(DifficultySettigns.spawnFlare))
+        {
+            FlareSpawn();
+        }
+
         if (difficulty.HasFlag(DifficultySettigns.showMaze))
         {
-            StartCoroutine(SetUpCamera(playerStartLocation, widht, height));
+            StartCoroutine(SetUpCamera(playerStartLocation, width, height));
         }
         else
         {
@@ -153,10 +204,32 @@ public class LevelStart : MonoBehaviour
         m_cutsceneCamera.gameObject.SetActive(false);
     }
     
-    private Vector3 RandomSpot()
+    /// <summary>
+    /// Spawns the flare
+    /// </summary>
+    private void FlareSpawn()
     {
-        print("TODO");
-        return Vector3.zero;
+        Instantiate(Resources.Load("Prefabs/Flare"), RandomSpot(), Quaternion.Euler(90f, 0f, m_rng.Next(0, 360)));
+    }
+
+    /// <summary>
+    /// Spawns the note
+    /// </summary>
+    private void NoteSpawn()
+    {
+        GameObject note = Instantiate(Resources.Load("Prefabs/Note"), RandomSpot(), Quaternion.Euler(0f, m_rng.Next(0, 360), 0f)) as GameObject;
+        note.GetComponent<MeshRenderer>().material = m_noteMaterials.ElementAt(new Random().Next(0, m_noteMaterials.Count));
+    }
+
+    /// <summary>
+    /// Returns a random spot in maze
+    /// </summary>
+    /// <returns>position.y has -0.486f offset</returns>
+    public Vector3 RandomSpot()
+    {
+        return new Vector3(m_rng.Next(-Mathf.RoundToInt(m_mazeWidth/2), Mathf.RoundToInt(m_mazeWidth / 2)),
+            -0.486f,
+            m_rng.Next(-Mathf.RoundToInt(m_mazeHeight / 2), Mathf.RoundToInt(m_mazeHeight / 2)));
     }
     #endregion
 }
