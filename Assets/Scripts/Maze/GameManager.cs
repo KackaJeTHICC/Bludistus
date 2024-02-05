@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 
@@ -19,52 +20,70 @@ public class GameManager : MonoBehaviour
     }
     #endregion
 
-    #region Variables
+    #region Variables 
+    [Header("Game")]
     /// <summary>
     /// Game difficulty settings
     /// </summary>
     private DifficultySettigns m_difficulty;
-                                          
+
     /// <summary>
     /// Is the monster spawned
     /// </summary>
     private bool m_isMonster = false;
 
-    /// <summary>
-    /// Is the game paused?
-    /// </summary>
-    private bool m_isPause = false;
-
-    /// <summary>
-    /// Does player have flare?
-    /// </summary>
-    private bool m_hasFlare = false;
-                                            
+    [Header("Notes")]
     /// <summary>
     /// Amount of notes that were already picked up
     /// </summary>
     private byte m_notesPickedUp = 0;
 
     /// <summary>
-    /// Speed of flare shaking in hand
+    /// Note gameobject
+    /// </summary>    
+    [SerializeField]
+    private GameObject m_note = null;
+
+    [Header("Flare")]
+    /// <summary>
+    /// Flare camera
     /// </summary>
-    private float m_shakeSpeed = 10f;
+    [SerializeField]
+    private Camera m_flareCamera = null;
+
+    /// <summary>
+    /// Does player have flare?
+    /// </summary>
+    private bool m_hasFlare = false;
+
+    /// <summary>
+    /// Speed of flare shaking in hand
+    /// </summary>  
+    [SerializeField]
+    private float m_shakeSpeed = 30f;
 
     /// <summary>
     /// Amplitude of flare shaking in hand
     /// </summary>
-    private float m_shakeAmplitude = 0.1f;
+    [SerializeField]
+    private float m_shakeAmplitude = 0.03f;
 
     /// <summary>
-    /// Initial position of flare in hand
+    /// Initial local position of flare in hand
     /// </summary>
-    private Vector3 m_initialPosition;
+    private Vector3 m_initiaLocalPosition;
 
     /// <summary>
     /// Flare game object
     /// </summary>
     [SerializeField]
     private GameObject m_flare = null;
+
+    [Header("Pause")]
+    /// <summary>
+    /// Is the game paused?
+    /// </summary>
+    private bool m_isPause = false;
 
     /// <summary>
     /// Pause menu game object
@@ -77,17 +96,12 @@ public class GameManager : MonoBehaviour
     /// </summary>  
     private GameObject m_finishLine = null;
 
+    [Header("Player")]
     /// <summary>
     /// Player game object
     /// </summary>  
     [SerializeField]
     private GameObject m_player = null;
-
-    /// <summary>
-    /// Flare camera
-    /// </summary>
-    [SerializeField]
-    private Camera m_flareCamera = null;
 
     /// <summary>
     /// Player camera
@@ -109,7 +123,7 @@ public class GameManager : MonoBehaviour
 
     #region Methods
     private void Start()    //this should never occur and the .Find() will most likely fail anyway
-    {
+    {  
         if (m_player == null)
         {
             Debug.LogError("Player is not assigned!");
@@ -132,11 +146,14 @@ public class GameManager : MonoBehaviour
         }
         if (m_flare == null)
         {
-            Debug.LogError("Flare  is not assigned!");
+            Debug.LogError("Flare is not assigned!");
             m_flare = m_player.transform.GetChild(2).gameObject;
         }
-
-        m_initialPosition = m_flare.transform.position;
+        if (m_note == null)
+        {
+            Debug.LogError("Note is not assigned!");
+            m_note = m_player.transform.GetChild(3).gameObject;
+        }
     }
 
     private void Update()
@@ -149,7 +166,10 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine(FlareUse());
         }
+    }
 
+    private void LateUpdate()
+    {
         if (m_hasFlare)
         {
             ShakeAnimation();
@@ -163,6 +183,8 @@ public class GameManager : MonoBehaviour
     private IEnumerator FlareUse()
     {
         m_hasFlare = false;
+        m_flare.SetActive(false);
+        LevelStart.instance.FlareSpawn();
 
         float width = MazeRenderer.instance.GetMazeSize().x;
         float height = MazeRenderer.instance.GetMazeSize().y;
@@ -177,23 +199,20 @@ public class GameManager : MonoBehaviour
         {
             targetSize = height / 2f;
         }
-        targetSize += 1f; // adds padding
-
-        Vector3 originalPosition = m_playerCamera.transform.position;
-        Vector3 targetPosition = new Vector3(m_playerCamera.transform.position.x, targetSize, m_playerCamera.transform.position.z);
+        targetSize += 10f; // adds padding
 
         float timeToLerp = 15f;
         float passedTime = 0f;
-        float rotationLerp;
 
         m_playerCamera.gameObject.SetActive(false);
         m_flareCamera.gameObject.SetActive(true);
         while (passedTime < timeToLerp + 0.5f)
         {
-            rotationLerp = 1f * Time.deltaTime;
-            //m_flareCamera.transform.rotation = Quaternion.RotateTowards(transform.localRotation, Quaternion.Euler(90f, 0f, 0f), rotationLerp);
-            m_flareCamera.transform.LookAt(m_player.transform);
-            m_flareCamera.transform.position = Vector3.Lerp(originalPosition, targetPosition, passedTime / timeToLerp);
+            //m_flareCamera.transform.LookAt(m_player.transform);
+            m_flareCamera.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            m_flareCamera.transform.position = Vector3.Lerp(m_playerCamera.transform.position,
+                new Vector3(m_playerCamera.transform.position.x, targetSize, m_playerCamera.transform.position.z),
+                passedTime / timeToLerp);
             passedTime += Time.deltaTime;
             yield return new WaitForEndOfFrame();
         }
@@ -207,9 +226,10 @@ public class GameManager : MonoBehaviour
     public void FlarePickedUp()
     {
         m_flare.SetActive(true);
+        m_initiaLocalPosition = m_flare.transform.localPosition;
         m_hasFlare = true;
     }
-    
+
     /// <summary>
     /// Animation of flare shaking in hand
     /// </summary>
@@ -217,11 +237,13 @@ public class GameManager : MonoBehaviour
     {
         float perlinX = Mathf.PerlinNoise(Time.time * m_shakeSpeed, 0);
         float perlinY = Mathf.PerlinNoise(0, Time.time * m_shakeSpeed);
+        float perlinZ = Mathf.PerlinNoise(Time.time * m_shakeSpeed, Time.time * m_shakeSpeed);
 
         float shakeOffsetX = (perlinX * 2 - 1) * m_shakeAmplitude;
         float shakeOffsetY = (perlinY * 2 - 1) * m_shakeAmplitude;
+        float shakeOffsetZ = (perlinZ * 2 - 1) * m_shakeAmplitude;
 
-        m_flare.transform.position = m_initialPosition + new Vector3(shakeOffsetX, shakeOffsetY, 0);
+        m_flare.transform.localPosition = m_initiaLocalPosition + new Vector3(shakeOffsetX, shakeOffsetY, shakeOffsetZ);
     }
     #endregion
 
@@ -229,15 +251,18 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Logic after picking up a note
     /// </summary>
-    public void NotePickedUp()
+    /// <param name="materialNumber">Material number of a note</param>
+    public void NotePickedUp(byte materialNumber)
     {
         byte notesNeeded = LevelStart.instance.NotesNeeded();
 
         m_notesPickedUp++;
 
-        if (m_notesPickedUp >= Mathf.FloorToInt(notesNeeded / 2) && m_difficulty.HasFlag(DifficultySettigns.spawnMonster) && !m_isMonster)    //spawns the monster mid game
-        {
-            m_isMonster = true;
+        if (m_notesPickedUp >= Mathf.FloorToInt(notesNeeded / 2)    //spawns the monster mid game
+            && m_difficulty.HasFlag(DifficultySettigns.spawnMonster)
+            && !m_isMonster)    
+        {                                           //TODO spawn logic                       
+            m_isMonster = true; 
             Instantiate(Resources.Load("Prefabs/Monster"), LevelStart.instance.RandomSpot(), Quaternion.Euler(0f, 0f, 0f));
         }
 
@@ -247,6 +272,21 @@ public class GameManager : MonoBehaviour
             m_finishLine.GetComponentInChildren<Animator>().SetBool("All notes collected", true);
             m_finishLine.GetComponent<AudioSource>().Play();
         }
+
+        m_note.SetActive(true);
+        m_note.GetComponent<MeshRenderer>().material = LevelStart.instance.m_noteMaterials.ElementAt(materialNumber);
+
+        StartCoroutine(DisableNoteInSeconds(3f));
+    }
+
+    /// <summary>
+    /// Disables the note X seconds
+    /// </summary>
+    /// <param name="t">When the note should be disabled</param>
+    private IEnumerator DisableNoteInSeconds(float t)
+    {   //this has to be in separate method, otherwise the WaitForSeconds() wont work for some reason
+        yield return new WaitForSeconds(t);
+        m_note.SetActive(false);
     }
     #endregion
 
@@ -257,6 +297,7 @@ public class GameManager : MonoBehaviour
     {
         if (m_isPause)
         {
+            Time.timeScale = 1f;
             m_isPause = false;
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
@@ -265,6 +306,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            Time.timeScale = 0f;
             m_isPause = true;
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;

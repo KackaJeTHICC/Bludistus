@@ -71,7 +71,7 @@ public class MazeRenderer : MonoBehaviour
     /// <summary>
     /// Vertical position of a singe maze wall
     /// </summary>
-    private float m_vertical = -0.3f;
+    private float m_vertical = -0.4f;
 
     /// <summary>
     /// A single maze wall prefab
@@ -322,7 +322,9 @@ public class MazeRenderer : MonoBehaviour
         {
             finishLine.GetComponentInChildren<Animator>().SetBool("All notes collected", true);
         }
-        GameObject.Find("Floor").GetComponent<NavMeshSurface>().BuildNavMesh();
+        GameObject floor = GameObject.Find("Floor");
+        floor.transform.localScale = new Vector3(m_width / 4, 0.1f, m_height / 4);
+        floor.GetComponent<NavMeshSurface>().BuildNavMesh();
     }
     #endregion
 }

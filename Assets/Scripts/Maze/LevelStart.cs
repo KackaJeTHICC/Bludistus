@@ -58,7 +58,6 @@ public class LevelStart : MonoBehaviour
     /// <summary>
     /// List of notes textures
     /// </summary>
-    //[HideInInspector]
     public List<Material> m_noteMaterials;
 
     /// <summary>
@@ -196,7 +195,8 @@ public class LevelStart : MonoBehaviour
     /// <param name="playerStartLocation">Location, where player should be spawned</param>
     private void PlayerSpawn(Vector3 playerStartLocation)   //switches to the player cam
     {
-        GameObject.Find("Start").transform.localPosition = playerStartLocation + new Vector3(0f, -0.372f, 0f);
+        Time.timeScale = 1f;
+        GameObject.Find("Start").transform.localPosition = playerStartLocation + new Vector3(0f, -0.5f, 0f);
 
         m_player.transform.localPosition = playerStartLocation;
         m_player.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
@@ -209,7 +209,7 @@ public class LevelStart : MonoBehaviour
     /// <summary>
     /// Spawns the flare
     /// </summary>
-    private void FlareSpawn()
+    public void FlareSpawn()
     {
         Instantiate(Resources.Load("Prefabs/Flare"), RandomSpot(), Quaternion.Euler(0f, 0f, 0f));
     }
@@ -220,7 +220,10 @@ public class LevelStart : MonoBehaviour
     private void NoteSpawn()
     {
         GameObject note = Instantiate(Resources.Load("Prefabs/Note"), RandomSpot(), Quaternion.Euler(80f, 0f, 0f)) as GameObject;
-        note.GetComponent<MeshRenderer>().material = m_noteMaterials.ElementAt(new Random().Next(0, m_noteMaterials.Count));
+        int i = new Random().Next(0, m_noteMaterials.Count);
+        note.GetComponent<MeshRenderer>().material = m_noteMaterials.ElementAt(i);
+        note.name = note.name.Replace("(Clone)", "");
+        note.name += i.ToString();
     }
 
     /// <summary>

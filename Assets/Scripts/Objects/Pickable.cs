@@ -6,12 +6,12 @@ public abstract class Pickable : MonoBehaviour
     /// <summary>
     /// Spinning speed
     /// </summary>
-    private float m_spinSpeed = 5f;
+    private float m_spinSpeed = 10f;
 
     /// <summary>
     /// Hovering amplitude
     /// </summary>
-    private float m_hoverAmplitude = 0.1f;
+    private float m_hoverAmplitude = 0.05f;
 
     /// <summary>
     /// Hovering speed
@@ -41,11 +41,12 @@ public abstract class Pickable : MonoBehaviour
     public abstract void PickUp();
 
     /// <summary>
-    /// Levitating gameobject animation
+    /// Levitating animation
     /// </summary>
     private protected void Levitate()
     {
-        transform.Rotate(Vector3.back, m_spinSpeed * Time.deltaTime);
+        transform.Rotate(Vector3.up, m_spinSpeed * Time.deltaTime);
+        transform.Rotate(Vector3.right, m_spinSpeed * Time.deltaTime);
         float hoverOffset = Mathf.Sin(Time.time * m_hoverSpeed) * m_hoverAmplitude;
         transform.position = initialPosition + new Vector3(0f, hoverOffset, 0f);
     }
