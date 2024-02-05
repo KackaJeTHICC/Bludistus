@@ -1,16 +1,9 @@
-using UnityEngine;
-
-public class Flare : MonoBehaviour, IPickable
+public class Flare : Pickable
 {
     #region Methods
-    public void PickUp()
+    public override void PickUp()
     {
-        GameManager.instance.NotePickedUp();
-
-        print("flare picked up");
-
-        //TODO do some logic
-        //then delete it
+        GameManager.instance.FlarePickedUp();
         gameObject.SetActive(false);
     }
     #endregion

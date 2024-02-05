@@ -56,13 +56,9 @@ public class LevelStart : MonoBehaviour
     private uint m_mazeHeight = 5;
 
     /// <summary>
-    /// Scale of a maze
-    /// </summary>
-    private float m_size = 1f;
-
-    /// <summary>
     /// List of notes textures
     /// </summary>
+    //[HideInInspector]
     public List<Material> m_noteMaterials;
 
     /// <summary>
@@ -78,7 +74,10 @@ public class LevelStart : MonoBehaviour
     /// <param name="amount">Amount of nodes needed to unlock the finish line</param>
     public void NotesNeeded(string amount)
     {
-        m_notesNeeded = byte.Parse(amount);
+        if (amount != "")
+        {
+            m_notesNeeded = byte.Parse(amount);
+        }
     }
 
     /// <summary>
@@ -128,10 +127,9 @@ public class LevelStart : MonoBehaviour
     /// <param name="height">Height of a maze in nodes</param>
     /// <param name="difficulty">Custom difficulty settings flag</param>
     /// <param name="seed">Seed for the random number generator</param>
-    public void StartLevel(Vector3 playerStartLocation, uint width, uint height, float size, DifficultySettigns difficulty, int seed)
+    public void StartLevel(Vector3 playerStartLocation, uint width, uint height, DifficultySettigns difficulty, int seed)
     {
         m_rng = new Random(seed);
-        m_size = size;
         m_mazeWidth = width;
         m_mazeHeight = height;
 
@@ -198,7 +196,11 @@ public class LevelStart : MonoBehaviour
     /// <param name="playerStartLocation">Location, where player should be spawned</param>
     private void PlayerSpawn(Vector3 playerStartLocation)   //switches to the player cam
     {
+        GameObject.Find("Start").transform.localPosition = playerStartLocation + new Vector3(0f, -0.372f, 0f);
+
         m_player.transform.localPosition = playerStartLocation;
+        m_player.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+        
         m_player.gameObject.SetActive(true);
         m_rendererCamera.gameObject.SetActive(true);
         m_cutsceneCamera.gameObject.SetActive(false);
@@ -209,7 +211,7 @@ public class LevelStart : MonoBehaviour
     /// </summary>
     private void FlareSpawn()
     {
-        Instantiate(Resources.Load("Prefabs/Flare"), RandomSpot(), Quaternion.Euler(90f, 0f, m_rng.Next(0, 360)));
+        Instantiate(Resources.Load("Prefabs/Flare"), RandomSpot(), Quaternion.Euler(0f, 0f, 0f));
     }
 
     /// <summary>
@@ -217,18 +219,18 @@ public class LevelStart : MonoBehaviour
     /// </summary>
     private void NoteSpawn()
     {
-        GameObject note = Instantiate(Resources.Load("Prefabs/Note"), RandomSpot(), Quaternion.Euler(0f, m_rng.Next(0, 360), 0f)) as GameObject;
+        GameObject note = Instantiate(Resources.Load("Prefabs/Note"), RandomSpot(), Quaternion.Euler(80f, 0f, 0f)) as GameObject;
         note.GetComponent<MeshRenderer>().material = m_noteMaterials.ElementAt(new Random().Next(0, m_noteMaterials.Count));
     }
 
     /// <summary>
     /// Returns a random spot in maze
     /// </summary>
-    /// <returns>position.y has -0.486f offset</returns>
+    /// <returns>Random spot in maze</returns>
     public Vector3 RandomSpot()
     {
         return new Vector3(m_rng.Next(-Mathf.RoundToInt(m_mazeWidth/2), Mathf.RoundToInt(m_mazeWidth / 2)),
-            -0.486f,
+            0f,
             m_rng.Next(-Mathf.RoundToInt(m_mazeHeight / 2), Mathf.RoundToInt(m_mazeHeight / 2)));
     }
     #endregion

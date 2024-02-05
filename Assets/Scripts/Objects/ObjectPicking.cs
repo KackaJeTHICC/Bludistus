@@ -6,18 +6,23 @@ public class ObjectPicking : MonoBehaviour
     /// <summary>
     /// Players camera
     /// </summary>
+    [SerializeField]
     private Camera m_playerCamera = null;
 
     /// <summary>
     /// Range of the player
-    /// </summary>
+    /// </summary>   
+    [SerializeField]
     private float m_range = 3f;
     #endregion
 
     #region Methods
     private void Start()
     {
-        m_playerCamera = transform.GetComponentInChildren<Camera>();
+        if (m_playerCamera == null)
+        {
+            m_playerCamera = transform.GetChild(0).GetComponent<Camera>();
+        }
     }
 
     /// <summary>
@@ -32,13 +37,16 @@ public class ObjectPicking : MonoBehaviour
         {
             if (hitInfo.collider.CompareTag("Pickable"))
             {
+                if (!Input.GetKeyDown(KeyCode.E))    //TODO new input system
+                {
+                    return;
+                }
                 MonoBehaviour[] scripts = hitInfo.collider.GetComponents<MonoBehaviour>();
-
                 foreach (MonoBehaviour s in scripts)
                 {
-                    if (s is IPickable)
+                    if (s is Pickable)
                     {
-                        IPickable p = s as IPickable;
+                        Pickable p = s as Pickable;
                         p.PickUp();
                         break;
                     }

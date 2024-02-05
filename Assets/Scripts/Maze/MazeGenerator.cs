@@ -39,10 +39,6 @@ public struct Neighbour
 /// </summary>
 public static class MazeGenerator
 {
-    #region Growing Tree
-    //TODO:)
-    #endregion
-
     #region Recursive Backtracker Algorithm
     /// <summary>
     /// Returns a neighbors wall from the other side
@@ -72,7 +68,7 @@ public static class MazeGenerator
     {
         Random rng = new Random(seed);
         Stack<Position> positionStack = new Stack<Position>();
-        Position position = new Position { X = (uint)rng.Next(0, (int)width), Y = (uint)rng.Next(0, (int)height) }; //TODO check if uint here is ok
+        Position position = new Position { X = (uint)rng.Next(0, (int)width), Y = (uint)rng.Next(0, (int)height) };
 
         maze[position.X, position.Y] |= WallState.visited;  //1000 <whatever WallState value> 
         positionStack.Push(position);
@@ -102,12 +98,12 @@ public static class MazeGenerator
     }
 
     /// <summary>
-    /// Returns a list of unvisited neighbors //TODO fill params
+    /// Returns a list of unvisited neighbors
     /// </summary>
-    /// <param name="p"></param>
-    /// <param name="maze"></param>
-    /// <param name="width"></param>
-    /// <param name="height"></param>
+    /// <param name="p">Current node is maze</param>
+    /// <param name="maze">Maze layout</param>
+    /// <param name="width">Width of a maze in nodes</param>
+    /// <param name="height">Height of a maze in nodes</param>
     /// <returns>A list of unvisited neighbors</returns>
     private static List<Neighbour> GetUnvisitedNeighbours(Position p, WallState[,] maze, uint width, uint height)
     {

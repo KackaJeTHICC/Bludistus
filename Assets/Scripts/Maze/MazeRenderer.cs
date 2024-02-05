@@ -33,6 +33,17 @@ public enum DifficultySettigns
 /// </summary>
 public class MazeRenderer : MonoBehaviour
 {
+    #region Instance
+    public static MazeRenderer instance;
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+    }
+    #endregion
+
     #region Variables
     /// <summary>
     /// Seed used to generate the maze
@@ -123,6 +134,15 @@ public class MazeRenderer : MonoBehaviour
             m_height = 15;
             Debug.LogError("Parsing height: " + height + " failed, using fallback value of " + m_height);
         }
+    }
+
+    /// <summary>
+    /// Returns maze dimensions
+    /// </summary>
+    /// <returns>Width and height</returns>
+    public Vector2 GetMazeSize()
+    {
+        return new Vector2(m_width, m_height);
     }
 
     /// <summary>
@@ -233,7 +253,7 @@ public class MazeRenderer : MonoBehaviour
         {
             m_seed = new Random().Next();
         }
-        WallState[,] maze = MazeGenerator.Generate(m_width, m_height, (Algorithms)algorithm, m_seed);  //generation of a layout
+        WallState[,] maze = MazeGenerator.Generate(m_width, m_height, (Algorithms)algorithm, m_seed);   //generation of a layout
         BuildMaze(maze);                                                                                //generation of walls 
     }
 
@@ -241,7 +261,7 @@ public class MazeRenderer : MonoBehaviour
     /// Builds the walls of the maze, based on the layout
     /// </summary>
     /// <param name="maze">Maze layout</param>
-    private async void BuildMaze(WallState[,] maze)
+    private void BuildMaze(WallState[,] maze)
     {
         GameObject finishLine = null;
         maze[0, 0] &= ~WallState.left;                        //creates entrance
@@ -266,8 +286,7 @@ public class MazeRenderer : MonoBehaviour
                     leftWall.position = position + new Vector3(-m_size / 2, m_vertical, 0);
                     leftWall.localScale = new Vector3(m_size, leftWall.localScale.y, leftWall.localScale.z);
                     leftWall.eulerAngles = new Vector3(0, 90, 0);
-                }
-                        
+                }  
                 if (i == m_width - 1)   //Places right column walls
                 {
                     if (cell.HasFlag(WallState.right))
@@ -284,7 +303,6 @@ public class MazeRenderer : MonoBehaviour
                         finishLine.name = "Finish Line";
                     }
                 }
-
                 if (j == 0)   //Places bottom row walls
                 {
                     if (cell.HasFlag(WallState.down))
@@ -294,19 +312,16 @@ public class MazeRenderer : MonoBehaviour
                         bottomWall.localScale = new Vector3(m_size, bottomWall.localScale.y, bottomWall.localScale.z);
                     }
                 }
-
                 if (i == 0 && j == 0)   //Checking if we are at the bottom left corner
                 {
-                    GetComponent<LevelStart>().StartLevel(position + new Vector3(-m_size, 0.17f, 0), m_width, m_height, m_size, m_difficultySettings, m_seed);
+                    GetComponent<LevelStart>().StartLevel(position + new Vector3(-m_size, 0.17f, 0), m_width, m_height, m_difficultySettings, m_seed);
                 }
             }
         }
-
         if (LevelStart.instance.NotesNeeded() == 0)    //opens the gate if there are no notes to be picked up
         {
             finishLine.GetComponentInChildren<Animator>().SetBool("All notes collected", true);
         }
-
         GameObject.Find("Floor").GetComponent<NavMeshSurface>().BuildNavMesh();
     }
     #endregion

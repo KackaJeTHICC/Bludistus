@@ -61,6 +61,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f53d8028da2d78d4286ce67e693a295a, type: 3}
+      propertyPath: m_Icon
+      value: 
+      objectReference: {fileID: -1412012063857583412, guid: 0000000000000000d000000000000000, type: 0}
+    - target: {fileID: 919132149155446097, guid: f53d8028da2d78d4286ce67e693a295a, type: 3}
       propertyPath: m_Name
       value: Flare
       objectReference: {fileID: 0}
@@ -79,6 +83,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f53d8028da2d78d4286ce67e693a295a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3865860456928808845}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f53d8028da2d78d4286ce67e693a295a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6718659966434623753}
   m_SourcePrefab: {fileID: 100100000, guid: f53d8028da2d78d4286ce67e693a295a, type: 3}
 --- !u!1 &3004894180566644528 stripped
 GameObject:
@@ -104,6 +111,18 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -5495902117074765545, guid: f53d8028da2d78d4286ce67e693a295a, type: 3}
+--- !u!114 &6718659966434623753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3004894180566644528}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f1994daf5b63ab4bacfa98472f63ed4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
