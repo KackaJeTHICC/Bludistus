@@ -41,9 +41,14 @@ public class LevelStart : MonoBehaviour
     private GameObject m_player = null;
 
     /// <summary>
+    /// Starting location of the player
+    /// </summary>
+    private Vector3 m_playerStartLocation = new Vector3();
+
+    /// <summary>
     /// Amount of notes needed to open the door
     /// </summary>
-    private byte m_notesNeeded = 0;
+    private byte m_notesNeeded = 1;
     
     /// <summary>
     /// Width of the maze
@@ -76,16 +81,26 @@ public class LevelStart : MonoBehaviour
         if (amount != "")
         {
             m_notesNeeded = byte.Parse(amount);
+            MonsterManager.instance.SetMaxNotes(byte.Parse(amount));
         }
     }
 
     /// <summary>
-    /// Sets the amount of nodes needed to unlock the finish line
+    /// Returns the amount of nodes needed to unlock the finish line
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Amount of nodes</returns>
     public byte NotesNeeded()
     {
         return m_notesNeeded;
+    }
+
+    /// <summary>
+    /// Returns player starting location
+    /// </summary>
+    /// <returns>Player starting location</returns>
+    public Vector3 PlayerStartLocation()
+    {
+        return m_playerStartLocation;
     }
     #endregion
 
@@ -128,6 +143,7 @@ public class LevelStart : MonoBehaviour
     /// <param name="seed">Seed for the random number generator</param>
     public void StartLevel(Vector3 playerStartLocation, uint width, uint height, DifficultySettigns difficulty, int seed)
     {
+        m_playerStartLocation = playerStartLocation;
         m_rng = new Random(seed);
         m_mazeWidth = width;
         m_mazeHeight = height;

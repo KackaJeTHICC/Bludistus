@@ -27,11 +27,6 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private DifficultySettigns m_difficulty;
 
-    /// <summary>
-    /// Is the monster spawned
-    /// </summary>
-    private bool m_isMonster = false;
-
     [Header("Notes")]
     /// <summary>
     /// Amount of notes that were already picked up
@@ -49,7 +44,13 @@ public class GameManager : MonoBehaviour
     /// Flare camera
     /// </summary>
     [SerializeField]
-    private Camera m_flareCamera = null;
+    private Camera m_flareCamera = null; 
+    
+    /// <summary>
+    /// Flare game object
+    /// </summary>
+    [SerializeField]
+    private GameObject m_flare = null;
 
     /// <summary>
     /// Does player have flare?
@@ -63,6 +64,12 @@ public class GameManager : MonoBehaviour
     private float m_shakeSpeed = 30f;
 
     /// <summary>
+    /// Angle at which the flare will be shot at the sky instead of the enemy
+    /// </summary>  
+    [SerializeField]
+    private float m_skyAngle = -20f;
+
+    /// <summary>
     /// Amplitude of flare shaking in hand
     /// </summary>
     [SerializeField]
@@ -73,18 +80,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private Vector3 m_initiaLocalPosition;
 
-    /// <summary>
-    /// Flare game object
-    /// </summary>
-    [SerializeField]
-    private GameObject m_flare = null;
-
-    [Header("Pause")]
-    /// <summary>
-    /// Is the game paused?
-    /// </summary>
-    private bool m_isPause = false;
-
+    [Header("Pause")]                      
     /// <summary>
     /// Pause menu game object
     /// </summary>
@@ -92,9 +88,9 @@ public class GameManager : MonoBehaviour
     private GameObject m_pauseMenu = null;
 
     /// <summary>
-    /// Finish line object
-    /// </summary>  
-    private GameObject m_finishLine = null;
+    /// Is the game paused?
+    /// </summary>
+    private bool m_isPause = false;
 
     [Header("Player")]
     /// <summary>
@@ -107,7 +103,12 @@ public class GameManager : MonoBehaviour
     /// Player camera
     /// </summary>
     [SerializeField]
-    private Camera m_playerCamera = null;
+    private Camera m_playerCamera = null;   
+
+    /// <summary>
+    /// Finish line object
+    /// </summary>  
+    private GameObject m_finishLine = null;
     #endregion
 
     #region Getters/Setters
@@ -118,6 +119,14 @@ public class GameManager : MonoBehaviour
     public void Difficulty(DifficultySettigns difficulty)
     {
         m_difficulty = difficulty;
+    }
+    /// <summary>
+    /// DifficultySettigns getter                                                
+    /// </summary>
+    /// <param name="difficulty">Game difficulty enum</param>
+    public DifficultySettigns Difficulty()
+    {
+        return m_difficulty;
     }
     #endregion
 
@@ -176,6 +185,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        Time.timeScale = 1f;
+    }
+
     #region Flare
     /// <summary>
     /// Plays the zooming out animation
@@ -186,38 +200,53 @@ public class GameManager : MonoBehaviour
         m_flare.SetActive(false);
         LevelStart.instance.FlareSpawn();
 
-        float width = MazeRenderer.instance.GetMazeSize().x;
-        float height = MazeRenderer.instance.GetMazeSize().y;
-        float aspectRatio = Screen.width / (float)Screen.height;
-        float targetSize;
-
-        if (width > height) // Landscape orientation
+        if (m_playerCamera.transform.rotation.x < m_skyAngle)   //shoots at the enemy
         {
-            targetSize = width / 2f / aspectRatio;
-        }
-        else // Portrait orientation
-        {
-            targetSize = height / 2f;
-        }
-        targetSize += 10f; // adds padding
+            Vector3 rayOrigin = m_playerCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0f));
+            Vector3 rayDirection = m_playerCamera.transform.forward;
+            RaycastHit hitInfo;
+            if (Physics.Raycast(rayOrigin, rayDirection, out hitInfo))
+            {
+                GameObject fyzickyObjekt;//ktery bude mit script, ktery ho porad bude posilat dopredu (kdyz na neco narazi tak se vypne)
 
-        float timeToLerp = 15f;
-        float passedTime = 0f;
+                fyzickyObjekt.SetActive(true);
 
-        m_playerCamera.gameObject.SetActive(false);
-        m_flareCamera.gameObject.SetActive(true);
-        while (passedTime < timeToLerp + 0.5f)
-        {
-            //m_flareCamera.transform.LookAt(m_player.transform);
-            m_flareCamera.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            m_flareCamera.transform.position = Vector3.Lerp(m_playerCamera.transform.position,
-                new Vector3(m_playerCamera.transform.position.x, targetSize, m_playerCamera.transform.position.z),
-                passedTime / timeToLerp);
-            passedTime += Time.deltaTime;
-            yield return new WaitForEndOfFrame();
+            }
         }
-        m_playerCamera.gameObject.SetActive(true);
-        m_flareCamera.gameObject.SetActive(false);
+        else    //shoots at the sky
+        {
+            float width = MazeRenderer.instance.GetMazeSize().x;
+            float height = MazeRenderer.instance.GetMazeSize().y;
+            float aspectRatio = Screen.width / (float)Screen.height;
+            float targetSize;
+
+            if (width > height) // Landscape orientation
+            {
+                targetSize = width / 2f / aspectRatio;
+            }
+            else // Portrait orientation
+            {
+                targetSize = height / 2f;
+            }
+            targetSize += 10f; // adds padding
+
+            float timeToLerp = 15f;
+            float passedTime = 0f;
+
+            m_playerCamera.gameObject.SetActive(false);
+            m_flareCamera.gameObject.SetActive(true);
+            while (passedTime < timeToLerp + 0.5f)
+            {
+                m_flareCamera.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                m_flareCamera.transform.position = Vector3.Lerp(m_playerCamera.transform.position,
+                    new Vector3(m_playerCamera.transform.position.x, targetSize, m_playerCamera.transform.position.z),
+                    passedTime / timeToLerp);
+                passedTime += Time.deltaTime;
+                yield return new WaitForEndOfFrame();
+            }
+            m_playerCamera.gameObject.SetActive(true);
+            m_flareCamera.gameObject.SetActive(false);
+        }
     }
 
     /// <summary>
@@ -257,13 +286,10 @@ public class GameManager : MonoBehaviour
         byte notesNeeded = LevelStart.instance.NotesNeeded();
 
         m_notesPickedUp++;
-
-        if (m_notesPickedUp >= Mathf.FloorToInt(notesNeeded / 2)    //spawns the monster mid game
-            && m_difficulty.HasFlag(DifficultySettigns.spawnMonster)
-            && !m_isMonster)    
-        {                                           //TODO spawn logic                       
-            m_isMonster = true; 
-            Instantiate(Resources.Load("Prefabs/Monster"), LevelStart.instance.RandomSpot(), Quaternion.Euler(0f, 0f, 0f));
+        
+        if (m_difficulty.HasFlag(DifficultySettigns.spawnMonster))    
+        {                       
+            MonsterManager.instance.TryMonsterSpawn(m_notesPickedUp);
         }
 
         if (m_notesPickedUp >= notesNeeded)   //opens the gate if all notes are picked up
@@ -275,12 +301,11 @@ public class GameManager : MonoBehaviour
 
         m_note.SetActive(true);
         m_note.GetComponent<MeshRenderer>().material = LevelStart.instance.m_noteMaterials.ElementAt(materialNumber);
-
         StartCoroutine(DisableNoteInSeconds(3f));
     }
 
     /// <summary>
-    /// Disables the note X seconds
+    /// Disables the note t seconds
     /// </summary>
     /// <param name="t">When the note should be disabled</param>
     private IEnumerator DisableNoteInSeconds(float t)
@@ -292,7 +317,7 @@ public class GameManager : MonoBehaviour
 
     /// <summary>
     /// Pauses/Unpauses the game
-    /// </summary>
+    /// </summary> 
     public void PauseGame()
     {
         if (m_isPause)

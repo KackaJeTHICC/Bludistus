@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public class Enemy : MonoBehaviour
 {
@@ -11,7 +12,7 @@ public class Enemy : MonoBehaviour
     /// </summary> 
     [SerializeField]
     private AudioSource m_audioSource = null;
-   
+
     /// <summary>
     /// Monster NavMeshAgent
     /// </summary> 
@@ -22,6 +23,11 @@ public class Enemy : MonoBehaviour
     /// Player transform
     /// </summary>
     private Transform m_player = null;
+
+    /// <summary>
+    /// Is the player dead?
+    /// </summary>
+    private bool m_isDead = false;
 
     /// <summary>
     /// Sound max distance
@@ -72,20 +78,18 @@ public class Enemy : MonoBehaviour
     }
 
     private void Update()
-    {   
-        //Audio stuff
+    {
         distance = Mathf.Clamp(Vector3.Distance(transform.position, m_player.position) - 10f, 0.1f, 50f);
         normalizedDistance = Mathf.Clamp01(distance / maxDistance);
         speed = Mathf.Lerp(maxSpeed, minSpeed, normalizedDistance);
         m_audioSource.pitch = speed;
 
-        //AI stuff
         m_navMeshAgent.destination = m_player.position;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && !m_isDead)
         {
             GameOver();
         }
@@ -93,10 +97,33 @@ public class Enemy : MonoBehaviour
 
     /// <summary>
     /// Ends the game
-    /// </summary>
+    /// </summary>   
+    /// <param name="other">Player gameobject</param>
     private void GameOver()
     {
-        print("game over:c");
+        m_isDead = true;
+        m_player.gameObject.SetActive(false);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        GameObject g = Instantiate(Resources.Load("Prefabs/GameOverScreen"), new Vector3(0f, 0, 0), Quaternion.Euler(0f, -0f, 0f)) as GameObject;
+        Button b = g.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<Button>();
+        b.onClick.AddListener(RespawnPlayer);
+        if (!GameManager.instance.Difficulty().HasFlag(DifficultySettigns.respawn))
+        {
+            b.interactable = false;
+        }
     }
-#endregion
+
+    /// <summary>
+    /// Respawns play
+    /// </summary>
+    public void RespawnPlayer()
+    {
+        m_isDead = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        m_player.transform.position = LevelStart.instance.PlayerStartLocation();
+        m_player.gameObject.SetActive(true);
+    }
+    #endregion
 }

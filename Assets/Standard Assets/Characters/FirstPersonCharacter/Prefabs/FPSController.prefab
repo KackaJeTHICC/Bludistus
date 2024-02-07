@@ -76,7 +76,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 100000}
   serializedVersion: 4
-  m_Mass: 75
+  m_Mass: 1
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -204,11 +204,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05ec5cf00ca181d45a42ba1870e148c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_MaxStamina: 25
-  m_StaminaDepletionRate: 5
-  m_StaminaRecoveryRate: 2
-  m_WalkSpeed: 1.5
-  m_RunSpeed: 2
+  m_MaxStamina: 8
+  m_StaminaDepletionRate: 1
+  m_StaminaRecoveryRate: 0.5
+  m_WalkSpeed: 0.8
+  m_RunSpeed: 1.4
   m_RunstepLenghten: 0.081
   m_JumpSpeed: 3
   m_StickToGroundForce: 10
@@ -400,7 +400,7 @@ GameObject:
   - component: {fileID: 12474086}
   - component: {fileID: 6089521481673636163}
   m_Layer: 2
-  m_Name: FirstPersonCharacter
+  m_Name: MainCamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5600,7 +5600,7 @@ GameObject:
   - component: {fileID: 8225868759265465543}
   - component: {fileID: 8947380788376085000}
   - component: {fileID: 2529928830610952631}
-  m_Layer: 2
+  m_Layer: 0
   m_Name: Note
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5616,7 +5616,7 @@ Transform:
   m_GameObject: {fileID: 493380974987575160}
   serializedVersion: 2
   m_LocalRotation: {x: -0.000000011403656, y: 0.7071069, z: -0.7071067, w: 0}
-  m_LocalPosition: {x: 0, y: 0.8, z: 0.574}
+  m_LocalPosition: {x: -0.08, y: 0.73, z: 0.78}
   m_LocalScale: {x: 0.048311777, y: 0.060389716, z: 0.06642868}
   m_ConstrainProportionsScale: 0
   m_Children: []

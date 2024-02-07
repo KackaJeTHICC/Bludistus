@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6690346765669628927}
   - component: {fileID: 8837449792669651693}
   - component: {fileID: 2459007693702160118}
+  - component: {fileID: 3484683250410388737}
   m_Layer: 3
   m_Name: Monster
   m_TagString: Untagged
@@ -188,7 +189,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.003
-  m_Speed: 1.7
+  m_Speed: 1
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
@@ -250,6 +251,27 @@ CapsuleCollider:
   m_Height: 0.025134806
   m_Direction: 1
   m_Center: {x: 0, y: 0.012612345, z: 0}
+--- !u!65 &3484683250410388737
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1302281565819873341}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.013231172, y: 0.025815748, z: 0.014391016}
+  m_Center: {x: 0, y: 0.012754638, z: 0.0032158983}
 --- !u!1 &2481569277383903497
 GameObject:
   m_ObjectHideFlags: 0
