@@ -25,39 +25,47 @@ public class Enemy : MonoBehaviour
     private Transform m_player = null;
 
     /// <summary>
+    /// Gameover screen
+    /// </summary>
+    private GameObject m_gameOverScreen;
+
+    /// <summary>
     /// Is the player dead?
     /// </summary>
     private bool m_isDead = false;
 
     /// <summary>
     /// Sound max distance
-    /// </summary>
-    public float maxDistance = 10f;
+    /// </summary>    
+    [SerializeField]
+    private float maxDistance = 0.4f;
 
     /// <summary>
     /// Audio clip minimum speed
-    /// </summary>
-    public float minSpeed = 0.5f;
+    /// </summary>   
+    [SerializeField]
+    private float minSpeed = 0.1f;
 
     /// <summary>     
     /// Audio clip maximum speed
-    /// </summary>
-    public float maxSpeed = 2.0f;
+    /// </summary>   
+    [SerializeField]
+    private float maxSpeed = 1.2f;
 
     /// <summary>
     /// Distance from player
     /// </summary>
-    private float distance = 0;
+    private float distance = 0f;
 
     /// <summary>
     /// Audio clip speed
     /// </summary>
-    private float speed = 0;
+    private float speed = 0f;
 
     /// <summary>    
     /// Normalized distance from player
     /// </summary>
-    private float normalizedDistance = 0;
+    private float normalizedDistance = 0f;
     #endregion
 
     #region Methods
@@ -105,8 +113,8 @@ public class Enemy : MonoBehaviour
         m_player.gameObject.SetActive(false);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        GameObject g = Instantiate(Resources.Load("Prefabs/GameOverScreen"), new Vector3(0f, 0, 0), Quaternion.Euler(0f, -0f, 0f)) as GameObject;
-        Button b = g.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<Button>();
+        m_gameOverScreen = Instantiate(Resources.Load("Prefabs/GameOverScreen"), new Vector3(0f, 0, 0), Quaternion.Euler(0f, -0f, 0f)) as GameObject;
+        Button b = m_gameOverScreen.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<Button>();
         b.onClick.AddListener(RespawnPlayer);
         if (!GameManager.instance.Difficulty().HasFlag(DifficultySettigns.respawn))
         {
@@ -120,6 +128,7 @@ public class Enemy : MonoBehaviour
     public void RespawnPlayer()
     {
         m_isDead = false;
+        Destroy(m_gameOverScreen);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         m_player.transform.position = LevelStart.instance.PlayerStartLocation();

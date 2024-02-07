@@ -32,8 +32,6 @@ public class MonsterManager : MonoBehaviour
     public float baseDisappearanceTime = 10f; // Base disappearance time when no notes are collected
     public float currentDisappearanceTime; // Current disappearance time
     public float maxDisappearanceTime = 60f; // Maximum disappearance time
-
-    private float m_const = 0f;
     #endregion
 
     #region Setters
@@ -48,11 +46,6 @@ public class MonsterManager : MonoBehaviour
     #endregion
 
     #region Methods
-    private void Start()
-    {
-        m_const = baseSpawnRate * baseDisappearanceTime;
-    }
-
     /// <summary>
     /// Tries spawning the monster
     /// </summary>
@@ -64,7 +57,6 @@ public class MonsterManager : MonoBehaviour
             return;
         }
         CalculateSpawnRateAndDisappearanceTime(notesPickedUp);
-
         if (currentSpawnRate * 100 >= m_rng.Next(1, 100))
         {
             m_isMonster = true;

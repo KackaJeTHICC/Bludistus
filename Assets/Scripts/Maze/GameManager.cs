@@ -53,6 +53,12 @@ public class GameManager : MonoBehaviour
     private GameObject m_flare = null;
 
     /// <summary>
+    /// Flare projectile game object
+    /// </summary>
+    [SerializeField]
+    private GameObject m_flareProjectile = null;
+
+    /// <summary>
     /// Does player have flare?
     /// </summary>
     private bool m_hasFlare = false;
@@ -67,7 +73,7 @@ public class GameManager : MonoBehaviour
     /// Angle at which the flare will be shot at the sky instead of the enemy
     /// </summary>  
     [SerializeField]
-    private float m_skyAngle = -20f;
+    private float m_skyAngle = -0.2748f;
 
     /// <summary>
     /// Amplitude of flare shaking in hand
@@ -158,6 +164,11 @@ public class GameManager : MonoBehaviour
             Debug.LogError("Flare is not assigned!");
             m_flare = m_player.transform.GetChild(2).gameObject;
         }
+        if (m_flareProjectile == null)
+        {
+            Debug.LogError("Flare Projectile is not assigned!");
+            m_flareProjectile = m_player.transform.GetChild(0).gameObject;
+        }
         if (m_note == null)
         {
             Debug.LogError("Note is not assigned!");
@@ -196,22 +207,22 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private IEnumerator FlareUse()
     {
+        if (m_isPause)
+        {
+            yield break;
+        }
         m_hasFlare = false;
         m_flare.SetActive(false);
         LevelStart.instance.FlareSpawn();
 
-        if (m_playerCamera.transform.rotation.x < m_skyAngle)   //shoots at the enemy
+        Vector3 rayOrigin = m_playerCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0f));
+        Vector3 rayDirection = m_playerCamera.transform.forward;
+        RaycastHit hitInfo;
+        if (Physics.Raycast(rayOrigin, rayDirection, out hitInfo) &&
+            m_playerCamera.transform.localRotation.x > m_skyAngle)   //shoots at the enemy
         {
-            Vector3 rayOrigin = m_playerCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0f));
-            Vector3 rayDirection = m_playerCamera.transform.forward;
-            RaycastHit hitInfo;
-            if (Physics.Raycast(rayOrigin, rayDirection, out hitInfo))
-            {
-                GameObject fyzickyObjekt;//ktery bude mit script, ktery ho porad bude posilat dopredu (kdyz na neco narazi tak se vypne)
-
-                fyzickyObjekt.SetActive(true);
-
-            }
+            m_flareProjectile.SetActive(true);
+            m_flareProjectile.transform.LookAt(hitInfo.point);
         }
         else    //shoots at the sky
         {

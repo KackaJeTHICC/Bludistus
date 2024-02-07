@@ -323,7 +323,7 @@ public class MazeRenderer : MonoBehaviour
             finishLine.GetComponentInChildren<Animator>().SetBool("All notes collected", true);
         }
         GameObject floor = GameObject.Find("Floor");
-        floor.transform.localScale = new Vector3(m_width / 4, 0.1f, m_height / 4);
+        floor.transform.localScale = new Vector3(m_width / 3, 0.1f, m_height / 3);
         floor.GetComponent<NavMeshSurface>().BuildNavMesh();
     }
     #endregion
