@@ -3097,7 +3097,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Info
+  m_Text: Read me
 --- !u!222 &1819593376
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3182,12 +3182,13 @@ MonoBehaviour:
 
     in
     order to open the gate in the top right corner of the maze, you need to find
-    all notes.
+    all notes (use E to pick them up).
 
-    There is also a monster, that is trying to catch you.
+    There is also a monster, that is trying
+    to catch you.
 
-    You
-    can use flare to shoot the monster or to look for the exit.
+    You can use flare to shoot (using left mouse button) the monster
+    or to look for the exit.
 
     Good luck.'
 --- !u!222 &1822198575
