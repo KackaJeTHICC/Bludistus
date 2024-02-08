@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Manages objects pick ups
+/// </summary>
 public class ObjectPicking : MonoBehaviour
 {
     #region Variables
@@ -19,7 +22,7 @@ public class ObjectPicking : MonoBehaviour
     #region Methods
     private void Start()
     {
-        if (m_playerCamera == null)
+        if (m_playerCamera == null) //this should never occur and the GetChild() will most likely fail anyway
         {
             m_playerCamera = transform.GetChild(0).GetComponent<Camera>();
         }
@@ -30,20 +33,18 @@ public class ObjectPicking : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        RaycastHit hitInfo;
         Vector3 rayOrigin = m_playerCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
-
-        if (Physics.Raycast(rayOrigin, m_playerCamera.transform.forward, out hitInfo, m_range))
+        if (Physics.Raycast(rayOrigin, m_playerCamera.transform.forward, out RaycastHit hitInfo, m_range))
         {
             if (hitInfo.collider.CompareTag("Pickable"))
             {
-                if (!Input.GetKeyDown(KeyCode.E))    //TODO new input system
+                if (!Input.GetKeyDown(KeyCode.E))    //New input system should be implemented
                 {
                     return;
                 }
                 MonoBehaviour[] scripts = hitInfo.collider.GetComponents<MonoBehaviour>();
-                foreach (MonoBehaviour s in scripts)
-                {
+                foreach (MonoBehaviour s in scripts)    //we look through all the scripts to find Pickable.cs
+                {                                       //this is a workaround, since we can't search for Pickable.cs directly
                     if (s is Pickable)
                     {
                         Pickable p = s as Pickable;

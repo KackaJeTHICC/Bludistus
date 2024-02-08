@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Loads different games scenes
+/// </summary>
 public class LevelManager : MonoBehaviour
 {
     /// <summary>
@@ -19,6 +22,7 @@ public class LevelManager : MonoBehaviour
     {
         SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
     }
+
     /// <summary>
     /// Exits the game
     /// </summary>

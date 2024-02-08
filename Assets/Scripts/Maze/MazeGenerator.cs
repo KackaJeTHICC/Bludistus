@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 #region Enums/Structs
 /// <summary>
@@ -18,18 +19,44 @@ public enum WallState
 /// <summary>
 /// Currently selected node in maze
 /// </summary>
-public struct Position
+public struct Vector2uint
 {
     public uint X;
     public uint Y;
+
+    public static bool operator ==(Vector2uint v1, Vector2uint v2)
+    {
+        return v1.X == v2.X && v1.Y == v2.Y;
+    }
+
+    public static bool operator !=(Vector2uint v1, Vector2uint v2)
+    {
+        return !(v1 == v2);
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj is not Vector2uint)
+        {
+            return false;
+        }
+
+        Vector2uint other = (Vector2uint)obj;
+        return this == other;
+    }
+
+    public override int GetHashCode()
+    {
+        return X.GetHashCode() ^ Y.GetHashCode();
+    }
 }
 
 /// <summary>
 /// The neighbors wall
 /// </summary>
-public struct Neighbour
+public struct Neighbor
 {
-    public Position Position;
+    public Vector2uint Position;
     public WallState SharedWall;
 }
 #endregion
@@ -41,36 +68,20 @@ public static class MazeGenerator
 {
     #region Recursive Backtracker Algorithm
     /// <summary>
-    /// Returns a neighbors wall from the other side
-    /// </summary>
-    /// <param name="wall">The wall from which we would like to get the wall that is on the other side</param>
-    /// <returns>A wall that is on the other side</returns>
-    private static WallState GetOppositeWall(WallState wall)
-    {
-        switch (wall)
-        {
-            case WallState.right: return WallState.left;
-            case WallState.left: return WallState.right;
-            case WallState.up: return WallState.down;
-            case WallState.down: return WallState.up;
-            default: return WallState.left; //A fallback just in case, even though this should never occur
-        }
-    }
-
-    /// <summary>
     /// Core logic of the Recursive Backtracker algorithm
     /// </summary>
     /// <param name="maze">Maze we would like to modify</param>
     /// <param name="width">Width of given maze in nodes/param>
-    /// <param name="height">Height of given maze in nodes</param>
+    /// <param name="height">Height of given maze in nodes</param>    
+    /// <param name="seed">Seed for random number generation</param>
     /// <returns>Returns a maze layout, which should be rendered</returns>
     private static WallState[,] ApplyRecursiveBacktracker(WallState[,] maze, uint width, uint height, int seed)
     {
         Random rng = new Random(seed);
-        Stack<Position> positionStack = new Stack<Position>();
-        Position position = new Position { X = (uint)rng.Next(0, (int)width), Y = (uint)rng.Next(0, (int)height) };
+        Stack<Vector2uint> positionStack = new Stack<Vector2uint>();
+        Vector2uint position = new Vector2uint { X = (uint)rng.Next(0, (int)width), Y = (uint)rng.Next(0, (int)height) };
 
-        maze[position.X, position.Y] |= WallState.visited;  //1000 <whatever WallState value> 
+        maze[position.X, position.Y] |= WallState.visited;  //1000 <whatever WallState already is> 
         positionStack.Push(position);
 
         while (positionStack.Count > 0) //Checks all unvisited neighbors
@@ -93,87 +104,37 @@ public static class MazeGenerator
                 positionStack.Push(randomPosition);
             }
         }
-
         return maze;
     }
+    #endregion
 
+    #region Eller's Algorithm
     /// <summary>
-    /// Returns a list of unvisited neighbors
+    /// Applies Eller's Algorithm to generate the maze layout
     /// </summary>
-    /// <param name="p">Current node is maze</param>
-    /// <param name="maze">Maze layout</param>
-    /// <param name="width">Width of a maze in nodes</param>
-    /// <param name="height">Height of a maze in nodes</param>
-    /// <returns>A list of unvisited neighbors</returns>
-    private static List<Neighbour> GetUnvisitedNeighbours(Position p, WallState[,] maze, uint width, uint height)
+    /// <param name="maze">Maze we would like to modify</param>
+    /// <param name="width">Width of given maze in nodes</param>
+    /// <param name="height">Height of given maze in nodes</param>
+    /// <param name="seed">Seed for random number generation</param>
+    /// <returns>Returns a maze layout, which should be rendered</returns>
+    private static WallState[,] ApplyEllersAlgorithm(WallState[,] maze, uint width, uint height, int seed)
     {
-        List<Neighbour> list = new List<Neighbour>();
+        throw new NotImplementedException();
+    }
+    #endregion
 
-        if (p.X > 0) // left
-        {
-            if (!maze[p.X - 1, p.Y].HasFlag(WallState.visited))
-            {
-                list.Add(new Neighbour
-                {
-                    Position = new Position
-                    {
-                        X = p.X - 1,
-                        Y = p.Y
-                    },
-                    SharedWall = WallState.left
-                });
-            }
-        }
-
-        if (p.Y > 0) // DOWN
-        {
-            if (!maze[p.X, p.Y - 1].HasFlag(WallState.visited))
-            {
-                list.Add(new Neighbour
-                {
-                    Position = new Position
-                    {
-                        X = p.X,
-                        Y = p.Y - 1
-                    },
-                    SharedWall = WallState.down
-                });
-            }
-        }
-
-        if (p.Y < height - 1) // UP
-        {
-            if (!maze[p.X, p.Y + 1].HasFlag(WallState.visited))
-            {
-                list.Add(new Neighbour
-                {
-                    Position = new Position
-                    {
-                        X = p.X,
-                        Y = p.Y + 1
-                    },
-                    SharedWall = WallState.up
-                });
-            }
-        }
-
-        if (p.X < width - 1) // RIGHT
-        {
-            if (!maze[p.X + 1, p.Y].HasFlag(WallState.visited))
-            {
-                list.Add(new Neighbour
-                {
-                    Position = new Position
-                    {
-                        X = p.X + 1,
-                        Y = p.Y
-                    },
-                    SharedWall = WallState.right
-                });
-            }
-        }
-
-        return list;
+    #region Wilson's Algorithm  
+    /// <summary>
+    /// Applies Wilson's Algorithm to generate the maze layout
+    /// </summary>
+    /// <param name="maze">Maze we would like to modify</param>
+    /// <param name="width">Width of given maze in nodes</param>
+    /// <param name="height">Height of given maze in nodes</param>
+    /// <param name="seed">Seed for random number generation</param>
+    /// <returns>Returns a maze layout, which should be rendered</returns>
+    private static WallState[,] ApplyWilsonsAlgorithm(WallState[,] maze, uint width, uint height, int seed)
+    {
+        throw new NotImplementedException();
     }
     #endregion
 
@@ -188,7 +149,7 @@ public static class MazeGenerator
     {
         WallState[,] maze = new WallState[width, height];
         WallState initial = WallState.right | WallState.left | WallState.up | WallState.down;   // 1111
-        for (uint i = 0; i < width; ++i)
+        for (uint i = 0; i < width; ++i)    //generates maze with all walls present
         {
             for (uint j = 0; j < height; ++j)
             {
@@ -200,12 +161,108 @@ public static class MazeGenerator
         {
             case Algorithms.RecursiveBacktracking:
                 return ApplyRecursiveBacktracker(maze, width, height, seed);
-            case Algorithms.testA:
-                return ApplyRecursiveBacktracker(maze, width, height, seed);
-            case Algorithms.testB:
-                return ApplyRecursiveBacktracker(maze, width, height, seed);
+            case Algorithms.EllersAlgorithm:
+                return ApplyEllersAlgorithm(maze, width, height, seed);
+            case Algorithms.WilsonsAlgorithm:
+                return ApplyWilsonsAlgorithm(maze, width, height, seed);
             default:
                 return ApplyRecursiveBacktracker(maze, width, height, seed); //A fallback just in case, even though this should never occur
+        }
+    }
+
+    /// <summary>
+    /// Returns a list of unvisited neighbors
+    /// </summary>
+    /// <param name="p">Current node is maze</param>
+    /// <param name="maze">Maze layout</param>
+    /// <param name="width">Width of a maze in nodes</param>
+    /// <param name="height">Height of a maze in nodes</param>
+    /// <returns>A list of unvisited neighbors</returns>
+    private static List<Neighbor> GetUnvisitedNeighbours(Vector2uint p, WallState[,] maze, uint width, uint height)
+    {
+        List<Neighbor> list = new List<Neighbor>();
+
+        if (p.X > 0)    //left
+        {
+            if (!maze[p.X - 1, p.Y].HasFlag(WallState.visited))
+            {
+                list.Add(new Neighbor
+                {
+                    Position = new Vector2uint
+                    {
+                        X = p.X - 1,
+                        Y = p.Y
+                    },
+                    SharedWall = WallState.left
+                });
+            }
+        }
+
+        if (p.Y > 0)    //down
+        {
+            if (!maze[p.X, p.Y - 1].HasFlag(WallState.visited))
+            {
+                list.Add(new Neighbor
+                {
+                    Position = new Vector2uint
+                    {
+                        X = p.X,
+                        Y = p.Y - 1
+                    },
+                    SharedWall = WallState.down
+                });
+            }
+        }
+
+        if (p.Y < height - 1)   //up
+        {
+            if (!maze[p.X, p.Y + 1].HasFlag(WallState.visited))
+            {
+                list.Add(new Neighbor
+                {
+                    Position = new Vector2uint
+                    {
+                        X = p.X,
+                        Y = p.Y + 1
+                    },
+                    SharedWall = WallState.up
+                });
+            }
+        }
+
+        if (p.X < width - 1)    //right
+        {
+            if (!maze[p.X + 1, p.Y].HasFlag(WallState.visited))
+            {
+                list.Add(new Neighbor
+                {
+                    Position = new Vector2uint
+                    {
+                        X = p.X + 1,
+                        Y = p.Y
+                    },
+                    SharedWall = WallState.right
+                });
+            }
+        }
+
+        return list;
+    }
+
+    /// <summary>
+    /// Returns a neighbors wall from the other side
+    /// </summary>
+    /// <param name="wall">The wall from which we would like to get the wall that is on the other side</param>
+    /// <returns>A wall that is on the other side</returns>
+    private static WallState GetOppositeWall(WallState wall)
+    {
+        switch (wall)
+        {
+            case WallState.right: return WallState.left;
+            case WallState.left: return WallState.right;
+            case WallState.up: return WallState.down;
+            case WallState.down: return WallState.up;
+            default: return WallState.left; //a fallback just in case, even though this should never occur
         }
     }
     #endregion

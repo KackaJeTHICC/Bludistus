@@ -17,7 +17,7 @@ public class Settings : MonoBehaviour
     #region Methods
     private void Start()
     {
-        if (m_masterMixer == null)
+        if (m_masterMixer == null)  //this should never occur
         {
             Debug.LogError("Audio Mixer is not assigned!");
         }
@@ -32,6 +32,16 @@ public class Settings : MonoBehaviour
     {
         m_masterMixer.SetFloat("MasterVolume", volume);
         PlayerPrefs.SetFloat("MasterVolume", volume);
+    }
+
+    /// <summary>
+    /// Sets the brightness
+    /// </summary>
+    /// <param name="brightness">Game brightness</param>
+    public void SetBrightness(float brightness)
+    {
+        RenderSettings.ambientLight = new Color(0.212f, 0.227f, 0.259f, Mathf.Clamp(brightness, 0.7f, 1.3f));
+        PlayerPrefs.SetFloat("Brightness", brightness);
     }
     #endregion
 }

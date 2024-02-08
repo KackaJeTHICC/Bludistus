@@ -1,10 +1,11 @@
+/// <summary>
+/// Note class which inherits from the Pickable class
+/// </summary>
 public class Note : Pickable
 {
-    #region Methods
     public override void PickUp()
     {
-       GameManager.instance.NotePickedUp(byte.Parse(gameObject.name.TrimStart('N', 'o', 't', 'e')));
+        GameManager.instance.NotePickedUp(byte.Parse(gameObject.name.TrimStart('N', 'o', 't', 'e')));
         gameObject.SetActive(false);
     }
-    #endregion
 }

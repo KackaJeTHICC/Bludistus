@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +48,7 @@ public class LevelStart : MonoBehaviour
     /// Amount of notes needed to open the door
     /// </summary>
     private byte m_notesNeeded = 1;
-    
+
     /// <summary>
     /// Width of the maze
     /// </summary>
@@ -106,8 +105,8 @@ public class LevelStart : MonoBehaviour
 
     #region Methods
     private void Start()
-    {        
-        foreach (Material m in Resources.LoadAll("Materials/", typeof(Material)))
+    {
+        foreach (Material m in Resources.LoadAll("Materials/", typeof(Material)))   //loads all materials
         {
             if (m.name.Contains("note") && m.name != "note0")
             {
@@ -116,10 +115,10 @@ public class LevelStart : MonoBehaviour
         }
 
         //This cases should never happen and the fallbacks will most likely fail, as some of the game objects should be disabled by default
-        if (m_player == null)   
+        if (m_player == null)
         {
             Debug.LogError("Player isn't assigned!");
-            m_player = GameObject.Find("PlayerCapsule");    
+            m_player = GameObject.Find("PlayerCapsule");
         }
         if (m_cutsceneCamera == null)
         {
@@ -143,25 +142,26 @@ public class LevelStart : MonoBehaviour
     /// <param name="seed">Seed for the random number generator</param>
     public void StartLevel(Vector3 playerStartLocation, uint width, uint height, DifficultySettigns difficulty, int seed)
     {
+        //assigns every needed variable
         m_playerStartLocation = playerStartLocation;
         m_rng = new Random(seed);
         m_mazeWidth = width;
         m_mazeHeight = height;
 
-        for (int i = 0; i < m_notesNeeded; i++)
+        for (int i = 0; i < m_notesNeeded; i++) //spawns all notes
         {
             NoteSpawn();
         }
-        if (difficulty.HasFlag(DifficultySettigns.spawnFlare))
+        if (difficulty.HasFlag(DifficultySettigns.spawnFlare))  //spawns flare if needed
         {
             FlareSpawn();
         }
 
-        if (difficulty.HasFlag(DifficultySettigns.showMaze))
+        if (difficulty.HasFlag(DifficultySettigns.showMaze))    //shows maze at the start if needed
         {
             StartCoroutine(SetUpCamera(playerStartLocation, width, height));
         }
-        else
+        else    //otherwise goes spawns the player immediately
         {
             PlayerSpawn(playerStartLocation);
         }
@@ -194,13 +194,17 @@ public class LevelStart : MonoBehaviour
         float timeToLerp = 15f;
         float passedTime = 0f;
 
+        RenderSettings.fog = false;
+        GameManager.instance.isInputLocked(true);
         while (passedTime < timeToLerp + 0.5f)  //smoothly zooms the camera out, so the entire maze fits on screen
         {
-            orthographicSize = Mathf.Lerp(orthographicSize, targetSize, passedTime/timeToLerp);
+            orthographicSize = Mathf.Lerp(orthographicSize, targetSize, passedTime / timeToLerp);
             m_cutsceneCamera.orthographicSize = orthographicSize;
             passedTime += Time.deltaTime;
             yield return new WaitForEndOfFrame();
         }
+        GameManager.instance.isInputLocked(false);
+        RenderSettings.fog = true;
 
         PlayerSpawn(playerStartLocation);
     }
@@ -211,19 +215,22 @@ public class LevelStart : MonoBehaviour
     /// <param name="playerStartLocation">Location, where player should be spawned</param>
     private void PlayerSpawn(Vector3 playerStartLocation)   //switches to the player cam
     {
+        /*timeScale should be already at 1f but it will cause a lot of problems if it's not
+        so its better to be safe then sorry*/
         Time.timeScale = 1f;
+
         GameObject.Find("Start").transform.localPosition = playerStartLocation + new Vector3(0f, -0.5f, 0f);
 
         m_player.transform.localPosition = playerStartLocation;
         m_player.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
-        
+
         m_player.gameObject.SetActive(true);
         m_rendererCamera.gameObject.SetActive(true);
         m_cutsceneCamera.gameObject.SetActive(false);
     }
-    
+
     /// <summary>
-    /// Spawns the flare
+    /// Spawns the flare in random location
     /// </summary>
     public void FlareSpawn()
     {
@@ -231,7 +238,7 @@ public class LevelStart : MonoBehaviour
     }
 
     /// <summary>
-    /// Spawns the note
+    /// Spawns the note and assigns a random material to it + renames it based on the material
     /// </summary>
     private void NoteSpawn()
     {
@@ -248,7 +255,7 @@ public class LevelStart : MonoBehaviour
     /// <returns>Random spot in maze</returns>
     public Vector3 RandomSpot()
     {
-        return new Vector3(m_rng.Next(-Mathf.RoundToInt(m_mazeWidth/2), Mathf.RoundToInt(m_mazeWidth / 2)),
+        return new Vector3(m_rng.Next(-Mathf.RoundToInt(m_mazeWidth / 2), Mathf.RoundToInt(m_mazeWidth / 2)),
             0f,
             m_rng.Next(-Mathf.RoundToInt(m_mazeHeight / 2), Mathf.RoundToInt(m_mazeHeight / 2)));
     }

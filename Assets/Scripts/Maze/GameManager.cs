@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
@@ -44,8 +43,8 @@ public class GameManager : MonoBehaviour
     /// Flare camera
     /// </summary>
     [SerializeField]
-    private Camera m_flareCamera = null; 
-    
+    private Camera m_flareCamera = null;
+
     /// <summary>
     /// Flare game object
     /// </summary>
@@ -86,12 +85,17 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private Vector3 m_initiaLocalPosition;
 
-    [Header("Pause")]                      
+    [Header("Pause")]
     /// <summary>
     /// Pause menu game object
     /// </summary>
     [SerializeField]
     private GameObject m_pauseMenu = null;
+
+    /// <summary>
+    /// Is the user input paused?
+    /// </summary>
+    private bool m_isInputLocked = false;
 
     /// <summary>
     /// Is the game paused?
@@ -109,7 +113,7 @@ public class GameManager : MonoBehaviour
     /// Player camera
     /// </summary>
     [SerializeField]
-    private Camera m_playerCamera = null;   
+    private Camera m_playerCamera = null;
 
     /// <summary>
     /// Finish line object
@@ -134,11 +138,20 @@ public class GameManager : MonoBehaviour
     {
         return m_difficulty;
     }
+
+    /// <summary>
+    /// Is the user input paused?
+    /// </summary>
+    /// <param name="isLocked">true if we want to lock users input</param>
+    public void isInputLocked(bool isLocked)
+    {
+        m_isInputLocked = isLocked;
+    }
     #endregion
 
     #region Methods
-    private void Start()    //this should never occur and the .Find() will most likely fail anyway
-    {  
+    private void Start()    //this should never occur and the Find()/GetChild() will most likely fail anyway
+    {
         if (m_player == null)
         {
             Debug.LogError("Player is not assigned!");
@@ -178,6 +191,10 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        if (m_isInputLocked)    //disables player input when it is locked
+        {
+            return;
+        }
         if (CrossPlatformInputManager.GetButtonDown("Cancel"))  //Pauses the game if it's unpaused and vice versa
         {
             PauseGame();
@@ -190,7 +207,7 @@ public class GameManager : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (m_hasFlare)
+        if (m_hasFlare) //shakes the flare gun, if player has one
         {
             ShakeAnimation();
         }
@@ -198,7 +215,7 @@ public class GameManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        Time.timeScale = 1f;
+        Time.timeScale = 1f;    //fixes a glitch where game wouldn't start properly on 2nd try
     }
 
     #region Flare
@@ -207,7 +224,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private IEnumerator FlareUse()
     {
-        if (m_isPause)
+        if (m_isPause)  //doesn't shoot the flare if player paused the game
         {
             yield break;
         }
@@ -219,34 +236,35 @@ public class GameManager : MonoBehaviour
         Vector3 rayDirection = m_playerCamera.transform.forward;
         RaycastHit hitInfo;
         if (Physics.Raycast(rayOrigin, rayDirection, out hitInfo) &&
-            m_playerCamera.transform.localRotation.x > m_skyAngle)   //shoots at the enemy
+            m_playerCamera.transform.localRotation.x > m_skyAngle)   //shooting at the enemy
         {
             m_flareProjectile.SetActive(true);
             m_flareProjectile.transform.LookAt(hitInfo.point);
         }
-        else    //shoots at the sky
+        else    //shooting at the sky
         {
             float width = MazeRenderer.instance.GetMazeSize().x;
             float height = MazeRenderer.instance.GetMazeSize().y;
             float aspectRatio = Screen.width / (float)Screen.height;
             float targetSize;
 
-            if (width > height) // Landscape orientation
+            if (width > height) //landscape orientation
             {
                 targetSize = width / 2f / aspectRatio;
             }
-            else // Portrait orientation
+            else    //portrait orientation
             {
                 targetSize = height / 2f;
             }
-            targetSize += 10f; // adds padding
+            targetSize += 10f;  //adds padding
 
             float timeToLerp = 15f;
             float passedTime = 0f;
 
             m_playerCamera.gameObject.SetActive(false);
             m_flareCamera.gameObject.SetActive(true);
-            while (passedTime < timeToLerp + 0.5f)
+            RenderSettings.fog = false;
+            while (passedTime < timeToLerp + 0.5f)  //zooms out the camera for given amount of time
             {
                 m_flareCamera.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
                 m_flareCamera.transform.position = Vector3.Lerp(m_playerCamera.transform.position,
@@ -255,6 +273,7 @@ public class GameManager : MonoBehaviour
                 passedTime += Time.deltaTime;
                 yield return new WaitForEndOfFrame();
             }
+            RenderSettings.fog = true;
             m_playerCamera.gameObject.SetActive(true);
             m_flareCamera.gameObject.SetActive(false);
         }
@@ -297,9 +316,9 @@ public class GameManager : MonoBehaviour
         byte notesNeeded = LevelStart.instance.NotesNeeded();
 
         m_notesPickedUp++;
-        
-        if (m_difficulty.HasFlag(DifficultySettigns.spawnMonster))    
-        {                       
+
+        if (m_difficulty.HasFlag(DifficultySettigns.spawnMonster))  //tries to spawn monster if needed    
+        {
             MonsterManager.instance.TryMonsterSpawn(m_notesPickedUp);
         }
 
@@ -310,6 +329,7 @@ public class GameManager : MonoBehaviour
             m_finishLine.GetComponent<AudioSource>().Play();
         }
 
+        //displays the note for set amount of time
         m_note.SetActive(true);
         m_note.GetComponent<MeshRenderer>().material = LevelStart.instance.m_noteMaterials.ElementAt(materialNumber);
         StartCoroutine(DisableNoteInSeconds(3f));
@@ -331,21 +351,25 @@ public class GameManager : MonoBehaviour
     /// </summary> 
     public void PauseGame()
     {
-        if (m_isPause)
+        if (m_isPause)  //unpauses the game
         {
             Time.timeScale = 1f;
             m_isPause = false;
+
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
+
             m_player.SetActive(true);
             m_pauseMenu.SetActive(false);
         }
-        else
+        else    //pauses the game
         {
             Time.timeScale = 0f;
             m_isPause = true;
+
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
+
             m_pauseMenu.SetActive(true);
             m_player.SetActive(false);
         }

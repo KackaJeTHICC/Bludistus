@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -38,34 +36,34 @@ public class Enemy : MonoBehaviour
     /// Sound max distance
     /// </summary>    
     [SerializeField]
-    private float maxDistance = 0.4f;
+    private float m_maxDistance = 0.4f;
 
     /// <summary>
     /// Audio clip minimum speed
     /// </summary>   
     [SerializeField]
-    private float minSpeed = 0.1f;
+    private float m_minSpeed = 0.1f;
 
     /// <summary>     
     /// Audio clip maximum speed
     /// </summary>   
     [SerializeField]
-    private float maxSpeed = 1.2f;
+    private float m_maxSpeed = 1.2f;
 
     /// <summary>
     /// Distance from player
     /// </summary>
-    private float distance = 0f;
-
-    /// <summary>
-    /// Audio clip speed
-    /// </summary>
-    private float speed = 0f;
+    private float m_distance = 0f;
 
     /// <summary>    
     /// Normalized distance from player
     /// </summary>
-    private float normalizedDistance = 0f;
+    private float m_normalizedDistance = 0f;
+
+    /// <summary>
+    /// Audio clip speed
+    /// </summary>
+    private float m_clipSpeed = 0f;
     #endregion
 
     #region Methods
@@ -73,12 +71,13 @@ public class Enemy : MonoBehaviour
     {
         m_player = GameObject.Find("PlayerCapsule").transform;
 
-        if (m_audioSource == null)    //this should never occur
+        //these should never occur
+        if (m_audioSource == null)
         {
             Debug.LogError("AudioSource is not assigned!");
             m_audioSource = GetComponent<AudioSource>();
         }
-        if (m_navMeshAgent == null)   //this should never occur
+        if (m_navMeshAgent == null)
         {
             Debug.LogError("NavMeshAgent is not assigned!");
             m_navMeshAgent = GetComponent<NavMeshAgent>();
@@ -87,17 +86,19 @@ public class Enemy : MonoBehaviour
 
     private void Update()
     {
-        distance = Mathf.Clamp(Vector3.Distance(transform.position, m_player.position) - 10f, 0.1f, 50f);
-        normalizedDistance = Mathf.Clamp01(distance / maxDistance);
-        speed = Mathf.Lerp(maxSpeed, minSpeed, normalizedDistance);
-        m_audioSource.pitch = speed;
+        //audio stuff
+        m_distance = Mathf.Clamp(Vector3.Distance(transform.position, m_player.position) - 10f, 0.1f, 50f);
+        m_normalizedDistance = Mathf.Clamp01(m_distance / m_maxDistance);
+        m_clipSpeed = Mathf.Lerp(m_maxSpeed, m_minSpeed, m_normalizedDistance);
+        m_audioSource.pitch = m_clipSpeed;
 
+        //ai stuff
         m_navMeshAgent.destination = m_player.position;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") && !m_isDead)
+        if (other.CompareTag("Player") && !m_isDead)    //triggers gameover, if player is caught
         {
             GameOver();
         }
@@ -111,8 +112,11 @@ public class Enemy : MonoBehaviour
     {
         m_isDead = true;
         m_player.gameObject.SetActive(false);
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        //spawns gameover screen, finds respawn button and disables it if needed
         m_gameOverScreen = Instantiate(Resources.Load("Prefabs/GameOverScreen"), new Vector3(0f, 0, 0), Quaternion.Euler(0f, -0f, 0f)) as GameObject;
         Button b = m_gameOverScreen.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<Button>();
         b.onClick.AddListener(RespawnPlayer);
@@ -123,16 +127,18 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
-    /// Respawns play
+    /// Respawns player
     /// </summary>
     public void RespawnPlayer()
     {
         m_isDead = false;
-        Destroy(m_gameOverScreen);
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
         m_player.transform.position = LevelStart.instance.PlayerStartLocation();
         m_player.gameObject.SetActive(true);
+        Destroy(m_gameOverScreen);
     }
     #endregion
 }

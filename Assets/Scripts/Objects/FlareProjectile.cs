@@ -1,7 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Manages the flare projectile
+/// </summary>
 public class FlareProjectile : MonoBehaviour
 {
     #region Instance
@@ -38,7 +39,7 @@ public class FlareProjectile : MonoBehaviour
     #region Methods
     private void Start()
     {
-        if (m_runtimeParent == null)
+        if (m_runtimeParent == null)    //this shouldn't occur
         {
             m_runtimeParent = GameObject.Find("--------Runtime--------").transform;
         }
@@ -46,20 +47,21 @@ public class FlareProjectile : MonoBehaviour
 
     private void OnEnable()
     {
-        gameObject.transform.SetParent(m_runtimeParent);
+        gameObject.transform.SetParent(m_runtimeParent);    //deattaches from player gameobject so the projectile can move freely
     }
 
     private void FixedUpdate()
     {
-        transform.Translate(Vector3.forward * m_speed);
+        transform.Translate(Vector3.forward * m_speed); //moves the projectile forwards
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Enemy"))
+        if (collision.gameObject.CompareTag("Enemy"))   //"kills" the monster
         {
-            gameObject.transform.SetParent(m_originalParent);
-            Destroy(collision.gameObject);  //TODO udelat aby o tom hra vedela ze chybi enemy
+            gameObject.transform.SetParent(m_originalParent);   //attaches back to player
+            MonsterManager.instance.IsMonster(false);
+            Destroy(collision.gameObject);
         }
         gameObject.SetActive(false);
     }

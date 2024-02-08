@@ -1,10 +1,11 @@
+/// <summary>
+/// Flare class which inherits from the Pickable class
+/// </summary>
 public class Flare : Pickable
 {
-    #region Methods
     public override void PickUp()
     {
         GameManager.instance.FlarePickedUp();
         gameObject.SetActive(false);
     }
-    #endregion
 }

@@ -9,9 +9,20 @@ using Random = System.Random;
 /// </summary>
 public enum Algorithms
 {
+    /// <summary>
+    /// Paths are randomly carved and backtracked until the maze is complete
+    /// </summary>
     RecursiveBacktracking = 0,
-    testA = 1,
-    testB = 2
+
+    /// <summary>
+    /// Generates mazes row by row, prioritizing connectivity in each row and using sets to track groups of cells
+    /// </summary>
+    EllersAlgorithm = 1,
+
+    /// <summary>
+    /// Generates a maze by randomly selecting unvisited cells and connecting them to existing paths until all cells are connected
+    /// </summary>
+    WilsonsAlgorithm = 2
 }
 
 /// <summary>
@@ -249,7 +260,7 @@ public class MazeRenderer : MonoBehaviour
     /// </summary>
     public void StartMazeGeneration(int algorithm)
     {
-        if (!m_difficultySettings.HasFlag(DifficultySettigns.customSeed))
+        if (!m_difficultySettings.HasFlag(DifficultySettigns.customSeed))   //gives us a random sees if player wants to
         {
             m_seed = new Random().Next();
         }
@@ -267,29 +278,29 @@ public class MazeRenderer : MonoBehaviour
         maze[0, 0] &= ~WallState.left;                        //creates entrance
         maze[m_width - 1, m_height - 1] &= ~WallState.right;  //creates exit
 
-        for (uint i = 0; i < m_width; ++i)  //Builds all walls
+        for (uint i = 0; i < m_width; ++i)  //builds all walls
         {
             for (uint j = 0; j < m_height; ++j)
             {
-                WallState cell = maze[i, j];
-                Vector3 position = new Vector3(-m_width / 2 + i, 0, -m_height / 2 + j);
+                WallState cell = maze[i, j];    //our current cell
+                Vector3 position = new Vector3(-m_width / 2 + i, 0, -m_height / 2 + j); //place where we want to place the wall
 
-                if (cell.HasFlag(WallState.up))
+                if (cell.HasFlag(WallState.up)) //places top wall
                 {
                     Transform topWall = Instantiate(m_wallPrefab, transform);
                     topWall.position = position + new Vector3(0, m_vertical, m_size / 2);
                     topWall.localScale = new Vector3(m_size, topWall.localScale.y, topWall.localScale.z);
                 }
-                if (cell.HasFlag(WallState.left))
+                if (cell.HasFlag(WallState.left))   //places left wall
                 {
                     Transform leftWall = Instantiate(m_wallPrefab, transform);
                     leftWall.position = position + new Vector3(-m_size / 2, m_vertical, 0);
                     leftWall.localScale = new Vector3(m_size, leftWall.localScale.y, leftWall.localScale.z);
                     leftWall.eulerAngles = new Vector3(0, 90, 0);
-                }  
+                }
                 if (i == m_width - 1)   //Places right column walls
                 {
-                    if (cell.HasFlag(WallState.right))
+                    if (cell.HasFlag(WallState.right))  //places right wall
                     {
                         Transform rightWall = Instantiate(m_wallPrefab, transform);
                         rightWall.position = position + new Vector3(m_size / 2, m_vertical, 0);
@@ -305,14 +316,14 @@ public class MazeRenderer : MonoBehaviour
                 }
                 if (j == 0)   //Places bottom row walls
                 {
-                    if (cell.HasFlag(WallState.down))
+                    if (cell.HasFlag(WallState.down))   //places bottom wall
                     {
                         Transform bottomWall = Instantiate(m_wallPrefab, transform);
                         bottomWall.position = position + new Vector3(0, m_vertical, -m_size / 2);
                         bottomWall.localScale = new Vector3(m_size, bottomWall.localScale.y, bottomWall.localScale.z);
                     }
                 }
-                if (i == 0 && j == 0)   //Checking if we are at the bottom left corner
+                if (i == 0 && j == 0)   //checking if we are at the bottom left corner
                 {
                     GetComponent<LevelStart>().StartLevel(position + new Vector3(-m_size, 0.17f, 0), m_width, m_height, m_difficultySettings, m_seed);
                 }
@@ -322,6 +333,9 @@ public class MazeRenderer : MonoBehaviour
         {
             finishLine.GetComponentInChildren<Animator>().SetBool("All notes collected", true);
         }
+
+        /*finds floor, scales it and generates navmeshsurface for ai
+        unfortunately bigger maze sizes have big performance impact if generated on the fly*/
         GameObject floor = GameObject.Find("Floor");
         floor.transform.localScale = new Vector3(m_width / 3, 0.1f, m_height / 3);
         floor.GetComponent<NavMeshSurface>().BuildNavMesh();

@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Parent class for every pickable object
+/// </summary>
 public abstract class Pickable : MonoBehaviour
 {
     #region Variables
@@ -21,13 +24,13 @@ public abstract class Pickable : MonoBehaviour
     /// <summary>
     /// Initial position of the object
     /// </summary>
-    private Vector3 initialPosition;
+    private Vector3 m_initialPosition;
     #endregion
 
     #region Methods
     private void Start()
     {
-        initialPosition = transform.position;
+        m_initialPosition = transform.position;
     }
 
     private void Update()
@@ -41,14 +44,14 @@ public abstract class Pickable : MonoBehaviour
     public abstract void PickUp();
 
     /// <summary>
-    /// Levitating animation
+    /// Levitating+spinning animation
     /// </summary>
     private protected void Levitate()
     {
         transform.Rotate(Vector3.up, m_spinSpeed * Time.deltaTime);
         transform.Rotate(Vector3.right, m_spinSpeed * Time.deltaTime);
         float hoverOffset = Mathf.Sin(Time.time * m_hoverSpeed) * m_hoverAmplitude;
-        transform.position = initialPosition + new Vector3(0f, hoverOffset, 0f);
+        transform.position = m_initialPosition + new Vector3(0f, hoverOffset, 0f);
     }
     #endregion
 }
